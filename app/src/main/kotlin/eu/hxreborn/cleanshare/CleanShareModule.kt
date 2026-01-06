@@ -30,6 +30,7 @@ class CleanShareModule(
         }
     }
 
+    // Spoof low-RAM so IntentResolver skips creating ShortcutLoader
     private fun hookLowRam() {
         runCatching {
             val method = ActivityManager::class.java.getDeclaredMethod("isLowRamDeviceStatic")
@@ -39,6 +40,7 @@ class CleanShareModule(
         }.onFailure { log("LowRam hook failed", it) }
     }
 
+    // Block AiAi shortcut queries to prevent share target profiling
     private fun hookShareTargets() {
         runCatching {
             val method = ShortcutManager::class.java

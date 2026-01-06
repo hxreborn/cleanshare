@@ -6,65 +6,53 @@ CleanShare is an Xposed module that removes Direct Share's suggested contact/con
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.1.21-7F52FF?style=flat&logo=kotlin&logoColor=white)
 ![Android](https://img.shields.io/badge/API-34%2B-3DDC84?logo=android&logoColor=white)
 
-<p align="center">
+<div align="center">
   <img src=".github/assets/direct-share-targets.jpg" alt="Direct Share targets row hidden" width="320" />
-</p>
+</div>
 
+## About
 
-## Overview
+Direct Share suggests contacts you emailed once five years ago, colleagues from jobs you no longer have, and people you'd rather not be reminded of. The suggestions are [rarely useful](https://support.google.com/android/thread/153774734). I've yet to hit a case where they helped. Might as well cut the row and skip the hassle.
 
-Direct Share suggests contacts you emailed once five years ago, colleagues from jobs you no longer have, and people you'd rather not be reminded of. The suggestions are [rarely useful](https://www.androidpolice.com/how-to-disable-androids-annoying-direct-share-pop-up-on-the-share-menu-samsung-lg-and-google/). I've yet to hit a case where they helped. Might as well cut the row and skip the hassle.
+CleanShare tricks `IntentResolver` into thinking it's running on a low-RAM device. Android then skips the Direct Share pipeline to save resources, so the row never loads.
 
-## How It Works
-
-The module tricks IntentResolver into thinking it's running on a low-RAM device. When Android detects this, it skips the Direct Share pipeline to save resources so the row never loads.
-
-On devices with [Android System Intelligence](https://www.androidpolice.com/what-is-android-system-intelligence/), an optional second hook blocks backend shortcut queries entirely.
-
-## Compatibility
-
-Works on Pixel and AOSP-based ROMs. OEM-modified ROMs are untested.
+On devices with [Android System Intelligence](https://www.androidpolice.com/what-is-android-system-intelligence/), it also blocks backend shortcut queries to prevent share target profiling.
 
 ## Requirements
 
 - Android 14 (API 34) or higher
-- Xposed Framework: [LSPosed](https://github.com/JingMatrix/LSPosed) (JingMatrix fork recommended)
+- [LSPosed](https://github.com/JingMatrix/LSPosed) (JingMatrix fork recommended)
+- Pixel or AOSP-based ROM (OEM skins untested)
 
 ## Installation
 
-1. Download the APK from [Releases](../../releases)
-2. Enable in LSPosed with scope:
-   - `com.android.intentresolver` – hides the Direct Share row
-   - `com.google.android.as` – blocks shortcut profiling (Google claims this data stays in [Private Compute Core](https://security.googleblog.com/2021/09/introducing-androids-private-compute.html) and never leaves the device, but it's still processed by a proprietary Google binary.)
-3. Reboot
+1. Download the latest APK from [Releases](../../releases).
+2. Install and enable the module in LSPosed.
+3. Configure the scope:
+   - `com.android.intentresolver` – Hides the Direct Share row.
+   - `com.google.android.as` – Blocks shortcut profiling.
+4. Reboot your device.
 
 ## Build
 
-1. Install JDK 21, Android SDK
+```bash
+git clone --recurse-submodules https://github.com/hxreborn/cleanshare.git
+cd cleanshare
+./gradlew buildLibxposed
+./gradlew assembleRelease
+```
 
-2. Configure SDK path in `local.properties`
+Requires JDK 21 and Android SDK. Configure `local.properties`:
 
-   ```properties
-   sdk.dir=/path/to/android/sdk
-   ```
+```properties
+sdk.dir=/path/to/android/sdk
 
-3. (Optional) Sign release builds by adding to `local.properties`:
-
-   ```properties
-   RELEASE_STORE_FILE=<path/to/keystore.jks>
-   RELEASE_STORE_PASSWORD=<store_password>
-   RELEASE_KEY_ALIAS=<key_alias>
-   RELEASE_KEY_PASSWORD=<key_password>
-   ```
-
-4. Build APK
-
-   ```bash
-   git clone --recurse-submodules https://github.com/hxreborn/cleanshare.git
-   cd cleanshare
-   ./gradlew buildLibxposed
-   ./gradlew assembleRelease
-   ```
+# Optional signing
+RELEASE_STORE_FILE=<path/to/keystore.jks>
+RELEASE_STORE_PASSWORD=<store_password>
+RELEASE_KEY_ALIAS=<key_alias>
+RELEASE_KEY_PASSWORD=<key_password>
+```
 
 ## License
 

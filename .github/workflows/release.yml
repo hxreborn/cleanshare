@@ -46,7 +46,7 @@ jobs:
 
       - name: Generate Changelog
         id: changelog
-        continue-on-error: false
+        continue-on-error: true
         uses: requarks/changelog-action@v1
         with:
           token: ${{ github.token }}

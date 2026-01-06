@@ -7,7 +7,7 @@ CleanShare is an Xposed module that removes Direct Share's suggested contact/con
 ![Android](https://img.shields.io/badge/API-34%2B-3DDC84?logo=android&logoColor=white)
 
 <div align="center">
-  <img src=".github/assets/direct-share-targets.jpg" alt="Direct Share targets row hidden" width="320" />
+  <img src=".github/assets/direct-share-targets.png" alt="Direct Share targets row hidden" width="320" />
 </div>
 
 ## About

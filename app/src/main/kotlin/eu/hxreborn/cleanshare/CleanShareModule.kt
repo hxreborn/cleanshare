@@ -22,8 +22,6 @@ class CleanShareModule(
     }
 
     override fun onPackageLoaded(param: PackageLoadedParam) {
-        if (!param.isFirstPackage) return
-
         when (param.packageName) {
             INTENT_RESOLVER_PKG -> hookLowRam()
             AIAI_PKG -> hookShareTargets()

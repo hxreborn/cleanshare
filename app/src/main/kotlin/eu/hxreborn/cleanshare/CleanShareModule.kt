@@ -10,54 +10,42 @@ import io.github.libxposed.api.XposedModule
 import io.github.libxposed.api.XposedModuleInterface.ModuleLoadedParam
 import io.github.libxposed.api.XposedModuleInterface.PackageLoadedParam
 
-internal lateinit var module: CleanShareModule
+private const val INTENT_RESOLVER_PKG = "com.android.intentresolver"
+private const val AIAI_PKG = "com.google.android.as"
 
 class CleanShareModule(
     base: XposedInterface,
     param: ModuleLoadedParam,
 ) : XposedModule(base, param) {
     init {
-        module = this
-        log("v${BuildConfig.VERSION_NAME} loaded")
+        log("CleanShare v${BuildConfig.VERSION_NAME} loaded")
     }
 
     override fun onPackageLoaded(param: PackageLoadedParam) {
         if (!param.isFirstPackage) return
 
         when (param.packageName) {
-            INTENT_RESOLVER_PKG -> hookIntentResolver()
-            AIAI_PKG -> hookAiAi()
+            INTENT_RESOLVER_PKG -> hookLowRam()
+            AIAI_PKG -> hookShareTargets()
         }
     }
 
-    private fun hookIntentResolver() {
-        // Spoof low-RAM so IntentResolver skips creating ShortcutLoader
+    private fun hookLowRam() {
         runCatching {
-            ActivityManager::class.java.getDeclaredMethod("isLowRamDeviceStatic").apply {
-                isAccessible = true
-                hook(this, LowRamHooker::class.java)
-                log("Hooked ActivityManager.isLowRamDeviceStatic")
-            }
-        }.onFailure {
-            log("Failed to hook ActivityManager.isLowRamDeviceStatic", it)
-        }
+            val method = ActivityManager::class.java.getDeclaredMethod("isLowRamDeviceStatic")
+            method.isAccessible = true
+            hook(method, LowRamHooker::class.java)
+            log("Hooked ${method.declaringClass.simpleName}.${method.name}")
+        }.onFailure { log("LowRam hook failed", it) }
     }
 
-    private fun hookAiAi() {
-        // Prevent backend profiling
+    private fun hookShareTargets() {
         runCatching {
-            ShortcutManager::class.java.getDeclaredMethod("getShareTargets", IntentFilter::class.java).apply {
-                isAccessible = true
-                hook(this, ShareTargetsHooker::class.java)
-                log("Hooked ShortcutManager.getShareTargets")
-            }
-        }.onFailure {
-            log("Failed to hook ShortcutManager.getShareTargets", it)
-        }
-    }
-
-    companion object {
-        private const val INTENT_RESOLVER_PKG = "com.android.intentresolver"
-        private const val AIAI_PKG = "com.google.android.as"
+            val method = ShortcutManager::class.java
+                .getDeclaredMethod("getShareTargets", IntentFilter::class.java)
+            method.isAccessible = true
+            hook(method, ShareTargetsHooker::class.java)
+            log("Hooked ${method.declaringClass.simpleName}.${method.name}")
+        }.onFailure { log("ShareTargets hook failed", it) }
     }
 }

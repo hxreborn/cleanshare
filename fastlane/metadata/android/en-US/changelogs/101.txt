@@ -1,0 +1,3 @@
+Initial release
+- Hide Direct Share row via IntentResolver hook
+- Block shortcut profiling via Android System Intelligence hook

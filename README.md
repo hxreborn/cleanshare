@@ -7,7 +7,7 @@ CleanShare is an Xposed module that removes Direct Share's suggested contact/con
 ![Android](https://img.shields.io/badge/API-34%2B-3DDC84?logo=android&logoColor=white)
 
 <div align="center">
-  <img src=".github/assets/direct-share-targets.png" alt="Direct Share targets row hidden" width="320" />
+  <img src=".github/assets/direct-share-targets.png" alt="Direct Share targets row removed" width="320" />
 </div>
 
 ## About
@@ -26,12 +26,16 @@ On devices with [Android System Intelligence](https://www.androidpolice.com/what
 
 ## Installation
 
-1. Download the latest APK from [Releases](../../releases).
-2. Install and enable the module in LSPosed.
-3. Configure the scope:
+<p>
+  <a href="https://f-droid.org/packages/eu.hxreborn.cleanshare"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="80" alt="Get it on F-Droid" /></a>
+  <a href="../../releases"><img src=".github/assets/badge_github.png" height="82" alt="Get it on GitHub" /></a>
+</p>
+
+1. Install and enable the module in LSPosed.
+2. Configure the scope:
    - `com.android.intentresolver` – Hides the Direct Share row.
    - `com.google.android.as` – Blocks shortcut profiling.
-4. Reboot your device.
+3. Reboot your device.
 
 ## Build
 

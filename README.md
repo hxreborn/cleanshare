@@ -4,7 +4,7 @@ CleanShare is an Xposed module that removes Direct Share's suggested contact/con
 
 ![Android CI](https://github.com/hxreborn/cleanshare/actions/workflows/android.yml/badge.svg)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.1.21-7F52FF?style=flat&logo=kotlin&logoColor=white)
-![Android](https://img.shields.io/badge/API-34%2B-3DDC84?logo=android&logoColor=white)
+![Android](https://img.shields.io/badge/API-30%2B-3DDC84?logo=android&logoColor=white)
 
 <div align="center">
   <img src=".github/assets/direct-share-targets.png" alt="Direct Share targets row removed" width="320" />
@@ -20,22 +20,25 @@ On devices with [Android System Intelligence](https://www.androidpolice.com/what
 
 ## Requirements
 
-- Android 14 (API 34) or higher
+- Android 11 (API 30) or higher
 - [LSPosed](https://github.com/JingMatrix/LSPosed) (JingMatrix fork recommended)
 - Pixel or AOSP-based ROM (OEM skins untested)
 
 ## Installation
 
-<p>
-  <a href="https://f-droid.org/packages/eu.hxreborn.cleanshare"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="80" alt="Get it on F-Droid" /></a>
-  <a href="../../releases"><img src=".github/assets/badge_github.png" height="82" alt="Get it on GitHub" /></a>
-</p>
+1. Download the APK:
 
-1. Install and enable the module in LSPosed.
-2. Configure the scope:
-   - `com.android.intentresolver` – Hides the Direct Share row.
-   - `com.google.android.as` – Blocks shortcut profiling.
-3. Reboot your device.
+   <a href="https://f-droid.org/packages/eu.hxreborn.cleanshare"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="60" alt="Get it on F-Droid" /></a>
+   <a href="../../releases"><img src=".github/assets/badge_github.png" height="62" alt="Get it on GitHub" /></a>
+
+2. Install and enable the module in LSPosed.
+3. Configure the scope:
+   - `android` – Hides the Direct Share row (Android 11-12 only).
+   - `com.android.intentresolver` – Hides the Direct Share row (Android 13+).
+   - `com.google.android.as` – Blocks shortcut profiling (Pixel only).
+4. Reboot your device.
+
+The module automatically detects your Android version and applies the correct hook.
 
 ## Build
 

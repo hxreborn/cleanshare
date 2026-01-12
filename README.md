@@ -33,12 +33,19 @@ On devices with [Android System Intelligence](https://www.androidpolice.com/what
 
 2. Install and enable the module in LSPosed.
 3. Configure the scope:
-   - `android` – Hides the Direct Share row (Android 11-12 only).
-   - `com.android.intentresolver` – Hides the Direct Share row (Android 13+).
-   - `com.google.android.as` – Blocks shortcut profiling (Pixel only).
+
+   **Android 13+**
+   - `com.android.intentresolver` (required)
+
+   **Android 11-12**
+   - `android` (required)
+
+   **Optional**
+   - `com.google.android.as` (blocks Direct Share data collection)
+
 4. Reboot your device.
 
-The module automatically detects your Android version and applies the correct hook.
+The module detects your Android version at runtime. Wrong scope selections are safely ignored.
 
 ## Build
 

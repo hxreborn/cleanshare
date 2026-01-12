@@ -14,7 +14,7 @@ CleanShare is an Xposed module that removes Direct Share's suggested contact/con
 
 Direct Share suggests contacts you emailed once five years ago, colleagues from jobs you no longer have, and people you'd rather not be reminded of. The suggestions are [rarely useful](https://support.google.com/android/thread/153774734). I've yet to hit a case where they helped. Might as well cut the row and skip the hassle.
 
-CleanShare tricks `IntentResolver` into thinking it's running on a low-RAM device. Android then skips the Direct Share pipeline to save resources, so the row never loads.
+CleanShare tricks the Share Sheet into thinking it's running on a low-RAM device. Android then skips the Direct Share pipeline to save resources, so the row never loads.
 
 On devices with [Android System Intelligence](https://www.androidpolice.com/what-is-android-system-intelligence/), it also blocks backend shortcut queries to prevent share target profiling.
 
@@ -35,17 +35,17 @@ On devices with [Android System Intelligence](https://www.androidpolice.com/what
 3. Configure the scope:
 
    **Android 13+**
-   - `com.android.intentresolver` (required)
+   - Intent Resolver (`com.android.intentresolver`)
+   - Android System Intelligence (`com.google.android.as`)
+   - Ignore System Framework (`android`) even if marked "Recommended"
 
    **Android 11-12**
-   - `android` (required)
-
-   **Optional**
-   - `com.google.android.as` (blocks Direct Share data collection)
+   - System Framework (`android`)
+   - Android System Intelligence (`com.google.android.as`)
 
 4. Reboot your device.
 
-The module detects your Android version at runtime. Wrong scope selections are safely ignored.
+Don't worry about selecting all scopes. The module checks your Android version and only applies what's needed.
 
 ## Build
 

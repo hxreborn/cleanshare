@@ -29,6 +29,7 @@ On devices with [Android System Intelligence](https://www.androidpolice.com/what
 1. Download the APK:
 
    <a href="https://f-droid.org/packages/eu.hxreborn.cleanshare"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="60" alt="Get it on F-Droid" /></a>
+   <a href="https://apt.izzysoft.de/fdroid/index/apk/eu.hxreborn.cleanshare"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" height="60" alt="Get it on IzzyOnDroid" /></a>
    <a href="../../releases"><img src=".github/assets/badge_github.png" height="62" alt="Get it on GitHub" /></a>
 
 2. Install and enable the module in LSPosed.

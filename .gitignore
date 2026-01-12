@@ -50,3 +50,4 @@ release.keystore
 # Exceptions - keep these tracked
 !gradle/wrapper/gradle-wrapper.properties
 !gradle/libs.versions.toml
+!fastlane/metadata/android/en-US/changelogs/*.txt

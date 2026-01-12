@@ -1,6 +1,7 @@
 package eu.hxreborn.cleanshare
 
 import android.app.ActivityManager
+import android.os.Build
 import android.content.IntentFilter
 import android.content.pm.ShortcutManager
 import eu.hxreborn.cleanshare.hook.LowRamHooker
@@ -10,8 +11,17 @@ import io.github.libxposed.api.XposedModule
 import io.github.libxposed.api.XposedModuleInterface.ModuleLoadedParam
 import io.github.libxposed.api.XposedModuleInterface.PackageLoadedParam
 
+private const val ANDROID_FRAMEWORK_PKG = "android"
 private const val INTENT_RESOLVER_PKG = "com.android.intentresolver"
 private const val AIAI_PKG = "com.google.android.as"
+
+// Share sheet lives in framework on 11–12, IntentResolver from 13+
+private val SHARE_SHEET_PKG: String =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        INTENT_RESOLVER_PKG
+    } else {
+        ANDROID_FRAMEWORK_PKG
+    }
 
 class CleanShareModule(
     base: XposedInterface,
@@ -23,12 +33,12 @@ class CleanShareModule(
 
     override fun onPackageLoaded(param: PackageLoadedParam) {
         when (param.packageName) {
-            INTENT_RESOLVER_PKG -> hookLowRam()
+            SHARE_SHEET_PKG -> hookLowRam()
             AIAI_PKG -> hookShareTargets()
         }
     }
 
-    // Spoof low-RAM so IntentResolver skips creating ShortcutLoader
+    // Spoof low-RAM so the share sheet (framework/IntentResolver) skips creating ShortcutLoader
     private fun hookLowRam() {
         runCatching {
             val method = ActivityManager::class.java.getDeclaredMethod("isLowRamDeviceStatic")

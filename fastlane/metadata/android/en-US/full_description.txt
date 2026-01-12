@@ -4,12 +4,18 @@
 
 <p><b>Requirements:</b></p>
 <ul>
-<li>Android 14 or higher</li>
+<li>Android 11 or higher</li>
 <li>LSPosed framework</li>
 </ul>
 
 <p><b>LSPosed scope:</b></p>
+<p>Android 13+:</p>
 <ul>
 <li>com.android.intentresolver</li>
+<li>com.google.android.as</li>
+</ul>
+<p>Android 11-12:</p>
+<ul>
+<li>android</li>
 <li>com.google.android.as</li>
 </ul>

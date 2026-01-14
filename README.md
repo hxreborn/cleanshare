@@ -28,9 +28,10 @@ On devices with [Android System Intelligence](https://www.androidpolice.com/what
 
 1. Download the APK:
 
-   <a href="https://f-droid.org/packages/eu.hxreborn.cleanshare"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="60" alt="Get it on F-Droid" /></a>
-   <a href="https://apt.izzysoft.de/fdroid/index/apk/eu.hxreborn.cleanshare?repo=main"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" height="60" alt="Get it on IzzyOnDroid" /></a>
-   <a href="../../releases"><img src=".github/assets/badge_github.png" height="62" alt="Get it on GitHub" /></a>
+   <a href="https://f-droid.org/packages/eu.hxreborn.cleanshare"><img src=".github/assets/badge_fdroid.png" height="60" alt="Get it on F-Droid" /></a>
+   <a href="https://apt.izzysoft.de/fdroid/index/apk/eu.hxreborn.cleanshare?repo=main"><img src=".github/assets/badge_izzyondroid.png" height="60" alt="Get it on IzzyOnDroid" /></a>
+   <a href="../../releases"><img src=".github/assets/badge_github.png" height="60" alt="Get it on GitHub" /></a>
+   <a href="http://apps.obtainium.imranr.dev/redirect.html?r=obtainium://app/%7B%22id%22%3A%22eu.hxreborn.cleanshare%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Fhxreborn%2Fcleanshare%22%2C%22author%22%3A%22rafareborn%22%2C%22name%22%3A%22CleanShare%22%2C%22additionalSettings%22%3A%22%7B%5C%22includePrereleases%5C%22%3Afalse%7D%22%7D"><img src=".github/assets/badge_obtainium.png" height="60" alt="Get it on Obtainium" /></a>
 
 2. Install and enable the module in LSPosed.
 3. Configure the scope:

@@ -1,0 +1,61 @@
+name: Bug Report
+description: Something isn't working
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: category
+    attributes:
+      label: What's broken?
+      options:
+        - Direct Share still showing
+        - Crash
+        - Other
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      placeholder: What happened? What did you expect?
+
+  - type: input
+    id: device
+    attributes:
+      label: Device
+      placeholder: "Pixel 9 Pro"
+
+  - type: input
+    id: android
+    attributes:
+      label: Android version
+      placeholder: "16 / 15 QPR2"
+
+  - type: input
+    id: build
+    attributes:
+      label: Build number / ROM
+      placeholder: "AP4A.250205.002 / LineageOS 22.1"
+
+  - type: input
+    id: lsposed
+    attributes:
+      label: LSPosed version
+      placeholder: "1.11.0 (7209)"
+
+  - type: input
+    id: root
+    attributes:
+      label: Root solution
+      placeholder: "Magisk 30.0 / KernelSU 1.0.3 / APatch 11012"
+
+  - type: input
+    id: scope
+    attributes:
+      label: Module scope
+      placeholder: "Intent Resolver, Android System Intelligence"
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Drag LSPosed log zip here or paste a link
+      placeholder: "https://0x0.st/abc.zip or drag file"

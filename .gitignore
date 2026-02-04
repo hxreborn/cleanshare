@@ -19,6 +19,7 @@ local.properties
 
 # Logs / tmp
 .DS_Store
+.directory
 *.log
 *.tmp
 *.temp

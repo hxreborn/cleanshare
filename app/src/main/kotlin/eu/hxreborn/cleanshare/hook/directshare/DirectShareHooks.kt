@@ -1,4 +1,4 @@
-package eu.hxreborn.cleanshare.hook
+package eu.hxreborn.cleanshare.hook.directshare
 
 import io.github.libxposed.api.XposedInterface.BeforeHookCallback
 import io.github.libxposed.api.XposedInterface.Hooker

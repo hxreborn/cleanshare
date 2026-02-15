@@ -37,11 +37,13 @@ On devices with [Android System Intelligence](https://www.androidpolice.com/what
 3. Configure the scope:
 
    **Android 13+**
+   - System Server (`system`) for delete-after-share feature
    - Intent Resolver (`com.android.intentresolver`)
    - Android System Intelligence (`com.google.android.as`)
    - Ignore System Framework (`android`) even if marked "Recommended"
 
    **Android 11-12**
+   - System Server (`system`) for delete-after-share feature
    - System Framework (`android`)
    - Android System Intelligence (`com.google.android.as`)
 

@@ -2,4 +2,24 @@
 <resources>
     <string name="app_name">CleanShare</string>
     <string name="app_desc">Removes Direct Share from Android Share Sheet</string>
+
+    <!-- Settings categories -->
+    <string name="pref_category_features">Features</string>
+    <string name="pref_category_about">About</string>
+
+    <!-- Feature prefs -->
+    <string name="pref_hide_direct_share_title">Hide Direct Share row</string>
+    <string name="pref_hide_direct_share_summary">Remove contact suggestions from share sheet</string>
+
+    <!-- About prefs -->
+    <string name="pref_version_title">Version</string>
+    <string name="pref_github_title">GitHub</string>
+    <string name="pref_github_summary">View source code</string>
+    <string name="pref_issues_title">Report issue</string>
+    <string name="pref_issues_summary">Submit bug reports or feature requests</string>
+    <string name="pref_licenses_title">Open source licenses</string>
+    <string name="pref_licenses_summary">Third-party libraries used</string>
+
+    <!-- Actions -->
+    <string name="back">Back</string>
 </resources>

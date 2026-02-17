@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
+import androidx.core.net.toUri
 import eu.hxreborn.cleanshare.hook.deletion.CheckboxHook
 import eu.hxreborn.cleanshare.hook.deletion.DeletionHook
 import eu.hxreborn.cleanshare.hook.directshare.LowRamHooker
@@ -83,7 +84,9 @@ class CleanShareModule(
             method.isAccessible = true
             hook(method, LowRamHooker::class.java)
             log("Hooked ActivityManager.isLowRamDeviceStatic")
-        }.onFailure { log("LowRam hook failed: ${it.message}") }
+        }.onFailure {
+            log("LowRam hook failed: ${it.message}")
+        }
     }
 
     // Insert "Delete after sharing" checkbox for screenshot shares
@@ -100,7 +103,9 @@ class CleanShareModule(
             method.isAccessible = true
             hook(method, CheckboxHook::class.java)
             log("Hooked ${chooserClass.simpleName}.onCreate")
-        }.onFailure { log("Checkbox hook failed: ${it.message}") }
+        }.onFailure {
+            log("Checkbox hook failed: ${it.message}")
+        }
 
         // Hook startSelected for deletion trigger
         val startSelected = findMethodByName(chooserClass, "startSelected")
@@ -113,7 +118,9 @@ class CleanShareModule(
             startSelected.isAccessible = true
             hook(startSelected, DeletionHook::class.java)
             log("Hooked ${chooserClass.simpleName}.startSelected")
-        }.onFailure { log("Deletion hook failed: ${it.message}") }
+        }.onFailure {
+            log("Deletion hook failed: ${it.message}")
+        }
     }
 
     // Block AiAi shortcut queries to prevent share target profiling
@@ -127,7 +134,9 @@ class CleanShareModule(
             method.isAccessible = true
             hook(method, ShareTargetsHooker::class.java)
             log("Hooked ShortcutManager.getShareTargets")
-        }.onFailure { log("ShareTargets hook failed: ${it.message}") }
+        }.onFailure {
+            log("ShareTargets hook failed: ${it.message}")
+        }
     }
 
     private fun isValidDeletionUri(uri: Uri): Boolean {
@@ -147,9 +156,7 @@ class CleanShareModule(
             val activityThreadClass = classLoader.loadClass("android.app.ActivityThread")
             val currentThread = activityThreadClass.getMethod("currentActivityThread").invoke(null)
             val context =
-                activityThreadClass
-                    .getMethod("getSystemContext")
-                    .invoke(currentThread) as Context
+                activityThreadClass.getMethod("getSystemContext").invoke(currentThread) as Context
 
             val handler = Handler(Looper.getMainLooper())
 
@@ -163,28 +170,31 @@ class CleanShareModule(
                         val filename = intent.getStringExtra("filename") ?: "Screenshot"
                         val delayMs = intent.getLongExtra("delay_ms", 15_000L)
 
-                        val uri = Uri.parse(uriString)
+                        val uri = uriString.toUri()
                         if (!isValidDeletionUri(uri)) {
                             log("Deletion rejected: invalid URI $uri")
                             return
                         }
 
                         val safeDelay = delayMs.coerceIn(0L, 60_000L)
-                        handler.postDelayed({
-                            runCatching {
-                                val rows = ctx.contentResolver.delete(uri, null, null)
-                                log("Deleted $uri ($rows rows)")
+                        handler.postDelayed(
+                            {
+                                runCatching {
+                                    val rows = ctx.contentResolver.delete(uri, null, null)
+                                    log("Deleted $uri ($rows rows)")
 
-                                if (rows > 0) {
-                                    Toast
-                                        .makeText(
-                                            ctx,
-                                            "Deleted: $filename",
-                                            Toast.LENGTH_SHORT,
-                                        ).show()
-                                }
-                            }.onFailure { log("Deletion failed for $uri", it) }
-                        }, safeDelay)
+                                    if (rows > 0) {
+                                        Toast
+                                            .makeText(
+                                                ctx,
+                                                "Deleted: $filename",
+                                                Toast.LENGTH_SHORT,
+                                            ).show()
+                                    }
+                                }.onFailure { log("Deletion failed for $uri", it) }
+                            },
+                            safeDelay,
+                        )
                     }
                 }
 
@@ -195,7 +205,10 @@ class CleanShareModule(
                         context.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
                     } else {
                         @Suppress("UnspecifiedRegisterReceiverFlag")
-                        context.registerReceiver(receiver, filter)
+                        context.registerReceiver(
+                            receiver,
+                            filter,
+                        )
                     }
                     log("Deletion receiver registered")
                 }.onFailure { log("Receiver registration failed", it) }

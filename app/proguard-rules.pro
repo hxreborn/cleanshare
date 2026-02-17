@@ -1,6 +1,9 @@
 # LSPosed module entry point
 -keep class eu.hxreborn.cleanshare.CleanShareModule { *; }
 
+# UI
+-keep class eu.hxreborn.cleanshare.ui.MainActivity { *; }
+
 # Keep all @XposedHooker annotated classes
 -keep @io.github.libxposed.api.annotations.XposedHooker class * { *; }
 
@@ -36,6 +39,17 @@
     public static int v(...);
     public static int d(...);
 }
+
+# ViewModel
+-keep class * extends androidx.lifecycle.ViewModel { *; }
+-keep class * extends androidx.lifecycle.ViewModelProvider$Factory { *; }
+
+# Compose
+-dontwarn androidx.compose.**
+-keep class androidx.compose.** { *; }
+
+# AboutLibraries
+-keep class com.mikepenz.aboutlibraries.** { *; }
 
 # Optimization
 -repackageclasses

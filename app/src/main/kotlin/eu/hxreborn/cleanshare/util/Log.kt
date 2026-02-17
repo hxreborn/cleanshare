@@ -11,7 +11,6 @@ internal fun log(
     t?.let { module.log(msg, it) } ?: module.log(msg)
 }
 
-// Lambda last for trailing lambda syntax: debugLog { "msg" } or debugLog(throwable) { "msg" }
 internal inline fun debugLog(
     t: Throwable? = null,
     msg: () -> String,

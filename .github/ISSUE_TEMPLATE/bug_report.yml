@@ -1,6 +1,6 @@
 name: Bug Report
 description: Something isn't working
-labels: ["bug"]
+labels: [ "bug" ]
 body:
   - type: dropdown
     id: category

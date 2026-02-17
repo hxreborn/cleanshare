@@ -40,49 +40,55 @@ internal object CheckboxInserter {
     private fun insertIntoHeadlineRow(
         activity: Activity,
         view: View,
-    ): Boolean = runCatching {
-        val id = findViewId(activity, "chooser_headline_row_container")
-        if (id == 0) return@runCatching false
+    ): Boolean =
+        runCatching {
+            val id = findViewId(activity, "chooser_headline_row_container")
+            if (id == 0) return@runCatching false
 
-        val container = activity.findViewById<FrameLayout>(id) ?: return@runCatching false
-        if (container.findViewWithTag<View>(CHECKBOX_VIEW_TAG) != null) return@runCatching true
+            val container = activity.findViewById<FrameLayout>(id) ?: return@runCatching false
+            if (container.findViewWithTag<View>(CHECKBOX_VIEW_TAG) != null) return@runCatching true
 
-        val density = activity.resources.displayMetrics.density
-        val params = FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                (HEADLINE_ROW_HEIGHT_DP * density).toInt(),
-            ).apply {
-                gravity = Gravity.END or Gravity.TOP
-                marginEnd = (CHECKBOX_MARGIN_END_DP * density).toInt()
-            }
-        view.layoutParams = params
-        container.addView(view)
-        debugLog { "insertIntoHeadlineRow: added to chooser_headline_row_container" }
-        true
-    }.onFailure { debugLog(it) { "insertIntoHeadlineRow failed" } }.getOrDefault(false)
+            val density = activity.resources.displayMetrics.density
+            val params =
+                FrameLayout
+                    .LayoutParams(
+                        FrameLayout.LayoutParams.WRAP_CONTENT,
+                        (HEADLINE_ROW_HEIGHT_DP * density).toInt(),
+                    ).apply {
+                        gravity = Gravity.END or Gravity.TOP
+                        marginEnd = (CHECKBOX_MARGIN_END_DP * density).toInt()
+                    }
+            view.layoutParams = params
+            container.addView(view)
+            debugLog { "insertIntoHeadlineRow: added to chooser_headline_row_container" }
+            true
+        }.onFailure { debugLog(it) { "insertIntoHeadlineRow failed" } }.getOrDefault(false)
 
     // Insert into chooser_header after "Share" title (A11-12).
     // https://cs.android.com/android/platform/superproject/+/android-11.0.0_r1:frameworks/base/core/res/res/layout/chooser_grid.xml;l=32
     private fun insertBelowPreview(
         activity: Activity,
         view: View,
-    ): Boolean = runCatching {
-        val id = findViewId(activity, "chooser_header")
-        if (id == 0) return@runCatching false
+    ): Boolean =
+        runCatching {
+            val id = findViewId(activity, "chooser_header")
+            if (id == 0) return@runCatching false
 
-        val header = activity.findViewById<ViewGroup>(id) ?: return@runCatching false
-        if (header.findViewWithTag<View>(CHECKBOX_VIEW_TAG) != null) return@runCatching true
+            val header = activity.findViewById<ViewGroup>(id) ?: return@runCatching false
+            if (header.findViewWithTag<View>(CHECKBOX_VIEW_TAG) != null) return@runCatching true
 
-        val density = activity.resources.displayMetrics.density
-        view.tag = CHECKBOX_VIEW_TAG
-        view.layoutParams = ViewGroup.MarginLayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-            ).apply {
-                topMargin = (CHECKBOX_MARGIN_TOP_DP * density).toInt()
-            }
-        header.addView(view)
-        debugLog { "insertBelowPreview: added to chooser_header" }
-        true
-    }.onFailure { debugLog(it) { "insertBelowPreview failed" } }.getOrDefault(false)
+            val density = activity.resources.displayMetrics.density
+            view.tag = CHECKBOX_VIEW_TAG
+            view.layoutParams =
+                ViewGroup
+                    .MarginLayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ).apply {
+                        topMargin = (CHECKBOX_MARGIN_TOP_DP * density).toInt()
+                    }
+            header.addView(view)
+            debugLog { "insertBelowPreview: added to chooser_header" }
+            true
+        }.onFailure { debugLog(it) { "insertBelowPreview failed" } }.getOrDefault(false)
 }

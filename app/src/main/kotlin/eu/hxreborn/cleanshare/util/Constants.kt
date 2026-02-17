@@ -1,7 +1,8 @@
 package eu.hxreborn.cleanshare.util
 
-internal const val PREFS_NAME = "cleanshare"
-internal const val PREF_DELETE_AFTER_SHARE = "delete_after_share"
+internal const val PREFS_FILE_NAME = "cleanshare"
+internal const val PREF_KEY_HIDE_DIRECT_SHARE = "hide_direct_share"
+internal const val PREF_KEY_DELETE_AFTER_SHARE = "delete_after_share"
 
 // Broadcast
 internal const val ACTION_DELETE_SCREENSHOT = "eu.hxreborn.cleanshare.DELETE_SCREENSHOT"

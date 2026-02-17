@@ -19,7 +19,7 @@ data class ShareSession(
 )
 
 object ShareState {
-    private val current = AtomicReference<ShareSession?>(null)
+    private val currentSession = AtomicReference<ShareSession?>(null)
 
     fun set(
         uri: Uri,
@@ -27,17 +27,17 @@ object ShareState {
         shouldDelete: Boolean,
         activity: Activity,
     ) {
-        current.set(ShareSession(uri, filename, shouldDelete, WeakReference(activity)))
+        currentSession.set(ShareSession(uri, filename, shouldDelete, WeakReference(activity)))
     }
 
     fun updateShouldDelete(value: Boolean) {
-        current.getAndUpdate { session ->
+        currentSession.getAndUpdate { session ->
             session?.copy(shouldDelete = value)
         }
     }
 
     fun consumeIfPendingDeletion(): PendingDeletion? {
-        val session = current.getAndSet(null) ?: return null
+        val session = currentSession.getAndSet(null) ?: return null
         if (!session.shouldDelete) return null
         val activity = session.activityRef.get() ?: return null
         return PendingDeletion(session.uri, session.filename, activity)

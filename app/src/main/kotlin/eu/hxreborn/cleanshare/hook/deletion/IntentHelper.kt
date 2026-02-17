@@ -49,7 +49,7 @@ internal fun extractImageUri(intent: Intent): Uri? {
     return uri
 }
 
-internal fun getScreenshotFilename(
+internal fun getFilenameIfScreenshot(
     activity: Activity,
     uri: Uri,
 ): String? {
@@ -63,18 +63,20 @@ internal fun getScreenshotFilename(
             if (cursor.moveToFirst()) {
                 val path = cursor.getString(0).orEmpty()
                 val name = cursor.getString(1).orEmpty()
-                debugLog { "getScreenshotFilename: path=$path name=$name" }
+                debugLog { "getFilenameIfScreenshot: path=$path name=$name" }
 
                 val isMatch =
                     path.contains("Screenshots", ignoreCase = true) ||
-                        name.matches(SCREENSHOT_NAME_PATTERN)
+                        name.matches(
+                            SCREENSHOT_NAME_PATTERN,
+                        )
                 if (isMatch) {
                     debugLog { "isScreenshot=true" }
                     return name
                 }
             }
         }
-    }.onFailure { debugLog(it) { "getScreenshotFilename query failed" } }
+    }.onFailure { debugLog(it) { "getFilenameIfScreenshot query failed" } }
 
     debugLog { "isScreenshot=false" }
     return null

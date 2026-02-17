@@ -5,10 +5,11 @@ import android.app.Activity
 import android.content.Context
 import android.net.Uri
 import android.widget.CheckBox
+import androidx.core.content.edit
 import eu.hxreborn.cleanshare.util.CHECKBOX_TEXT_SIZE_SP
 import eu.hxreborn.cleanshare.util.CHECKBOX_VIEW_TAG
-import eu.hxreborn.cleanshare.util.PREFS_NAME
-import eu.hxreborn.cleanshare.util.PREF_DELETE_AFTER_SHARE
+import eu.hxreborn.cleanshare.util.PREFS_FILE_NAME
+import eu.hxreborn.cleanshare.util.PREF_KEY_DELETE_AFTER_SHARE
 import eu.hxreborn.cleanshare.util.debugLog
 import io.github.libxposed.api.XposedInterface.AfterHookCallback
 import io.github.libxposed.api.XposedInterface.Hooker
@@ -30,7 +31,7 @@ class CheckboxHook : Hooker {
             val shareIntent = extractShareIntent(rawIntent) ?: return
             val uri = extractImageUri(shareIntent) ?: return
 
-            val filename = getScreenshotFilename(activity, uri) ?: return
+            val filename = getFilenameIfScreenshot(activity, uri) ?: return
 
             // Defer insertion since views aren't inflated yet during onCreate
             activity.window.decorView.post { insertCheckbox(activity, uri, filename) }
@@ -53,12 +54,12 @@ class CheckboxHook : Hooker {
 
         @SuppressLint("SetTextI18n")
         private fun createCheckbox(activity: Activity): CheckBox {
-            val prefs = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val prefs = activity.getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE)
             return CheckBox(activity).apply {
                 text = "Delete after sharing"
                 tag = CHECKBOX_VIEW_TAG
                 textSize = CHECKBOX_TEXT_SIZE_SP
-                isChecked = prefs.getBoolean(PREF_DELETE_AFTER_SHARE, false)
+                isChecked = prefs.getBoolean(PREF_KEY_DELETE_AFTER_SHARE, false)
             }
         }
 
@@ -75,10 +76,10 @@ class CheckboxHook : Hooker {
             checkBox: CheckBox,
             activity: Activity,
         ) {
-            val prefs = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val prefs = activity.getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE)
             checkBox.setOnCheckedChangeListener { _, checked ->
                 ShareState.updateShouldDelete(checked)
-                prefs.edit().putBoolean(PREF_DELETE_AFTER_SHARE, checked).apply()
+                prefs.edit { putBoolean(PREF_KEY_DELETE_AFTER_SHARE, checked) }
             }
         }
     }

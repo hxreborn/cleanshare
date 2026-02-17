@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.agp.app)
     alias(libs.plugins.kotlin)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.aboutlibraries)
     alias(libs.plugins.ktlint)
 }
 
@@ -19,10 +21,7 @@ android {
     signingConfigs {
         create("release") {
             fun secret(name: String): String? =
-                providers
-                    .gradleProperty(name)
-                    .orElse(providers.environmentVariable(name))
-                    .orNull
+                providers.gradleProperty(name).orElse(providers.environmentVariable(name)).orNull
 
             val storeFilePath = secret("RELEASE_STORE_FILE")
             if (!storeFilePath.isNullOrBlank()) {
@@ -45,10 +44,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            signingConfig =
-                signingConfigs
-                    .getByName("release")
-                    .takeIf { it.storeFile != null }
+            signingConfig = signingConfigs.getByName("release").takeIf { it.storeFile != null }
         }
         debug {
             isMinifyEnabled = false
@@ -63,6 +59,7 @@ android {
 
     buildFeatures {
         buildConfig = true
+        compose = true
     }
 
     compileOptions {
@@ -95,4 +92,18 @@ ktlint {
 
 dependencies {
     compileOnly(libs.libxposed.api)
+    implementation(libs.libxposed.service)
+
+    implementation(libs.core.ktx)
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons)
+    implementation(libs.activity.compose)
+    implementation(libs.lifecycle.runtime.compose)
+    implementation(libs.lifecycle.viewmodel.compose)
+
+    implementation(libs.compose.preference)
+    implementation(libs.aboutlibraries.core)
+    implementation(libs.aboutlibraries.compose)
 }

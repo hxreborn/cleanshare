@@ -25,8 +25,17 @@
 -keep,allowobfuscation,allowoptimization public class * extends io.github.libxposed.api.XposedModule {
     public <init>(...);
     public void onPackageLoaded(...);
-    public void onSystemServerLoaded(...);
 }
+
+# ContentProvider registered in manifest must survive shrinking
+-keep class eu.hxreborn.cleanshare.deletion.DeletionProvider { *; }
+
+# libsu: keep root shell and file classes
+-keep class com.topjohnwu.superuser.** { *; }
+
+# Enum classes used for JSON serialization in DeletionQueue
+-keepclassmembers enum eu.hxreborn.cleanshare.deletion.RequestStatus { *; }
+-keepclassmembers enum eu.hxreborn.cleanshare.prefs.DeletionMode { *; }
 
 # Kotlin intrinsics - strip null checks in release
 -assumenosideeffects class kotlin.jvm.internal.Intrinsics {

@@ -10,6 +10,9 @@ activity-compose = "1.12.3"
 material3 = "1.5.0-alpha13"
 compose-preference = "1.1.1"
 aboutlibraries = "11.6.3"
+splashscreen = "1.0.1"
+libsu = "6.0.0"
+navigation3 = "1.1.0-alpha03"
 
 [libraries]
 libxposed-api = { group = "io.github.libxposed", name = "api", version.ref = "xposed" }
@@ -25,6 +28,11 @@ activity-compose = { group = "androidx.activity", name = "activity-compose", ver
 compose-preference = { group = "me.zhanghai.compose.preference", name = "library", version.ref = "compose-preference" }
 aboutlibraries-core = { group = "com.mikepenz", name = "aboutlibraries-core", version = "12.1.2" }
 aboutlibraries-compose = { group = "com.mikepenz", name = "aboutlibraries-compose-m3", version = "12.1.2" }
+splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
+libsu-core = { group = "com.github.topjohnwu.libsu", name = "core", version.ref = "libsu" }
+libsu-io = { group = "com.github.topjohnwu.libsu", name = "io", version.ref = "libsu" }
+navigation3-runtime = { group = "androidx.navigation3", name = "navigation3-runtime", version.ref = "navigation3" }
+navigation3-ui = { group = "androidx.navigation3", name = "navigation3-ui", version.ref = "navigation3" }
 
 [plugins]
 agp-app = { id = "com.android.application", version.ref = "agp" }
@@ -32,3 +40,4 @@ kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }
+serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

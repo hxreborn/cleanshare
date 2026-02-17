@@ -3,49 +3,66 @@ package eu.hxreborn.cleanshare.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import eu.hxreborn.cleanshare.prefs.DeletionMode
 import eu.hxreborn.cleanshare.prefs.Prefs
 import eu.hxreborn.cleanshare.prefs.PrefsRepository
 import eu.hxreborn.cleanshare.ui.state.SettingsUiState
-import kotlinx.coroutines.flow.MutableStateFlow
+import eu.hxreborn.cleanshare.util.RootUtils
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
 abstract class SettingsViewModel : ViewModel() {
     abstract val uiState: StateFlow<SettingsUiState>
-    abstract val showLicenses: StateFlow<Boolean>
 
     abstract fun setHideDirectShare(enabled: Boolean)
 
     abstract fun setHideQuickShare(enabled: Boolean)
 
-    abstract fun showLicenses()
+    abstract fun setDeletionEnabled(enabled: Boolean)
 
-    abstract fun hideLicenses()
+    abstract fun setDeletionMode(mode: DeletionMode)
+
+    abstract fun setDeletionDelayMs(delayMs: Int)
+
+    abstract fun setShowDeletionToast(enabled: Boolean)
+
+    abstract fun setScreenshotPattern(pattern: String)
+
+    abstract fun syncLocalToRemote()
 }
 
 class SettingsViewModelImpl(
     private val prefsRepository: PrefsRepository,
 ) : SettingsViewModel() {
+    private val isRootAvailable = RootUtils.isRootAvailable()
+
     override val uiState: StateFlow<SettingsUiState> =
         combine(
             prefsRepository.observeBoolean(Prefs.HIDE_DIRECT_SHARE),
             prefsRepository.observeBoolean(Prefs.HIDE_QUICK_SHARE),
-        ) { hideDirectShare, hideQuickShare ->
+            prefsRepository.observeBoolean(Prefs.DELETION_ENABLED),
+            prefsRepository.observeEnum(Prefs.DELETION_MODE),
+            prefsRepository.observeInt(Prefs.DELETION_DELAY_MS),
+            prefsRepository.observeBoolean(Prefs.SHOW_DELETION_TOAST),
+            prefsRepository.observeString(Prefs.SCREENSHOT_PATTERN),
+        ) { values ->
             SettingsUiState.Ready(
-                hideDirectShare = hideDirectShare,
-                hideQuickShare = hideQuickShare,
+                hideDirectShare = values[0] as Boolean,
+                hideQuickShare = values[1] as Boolean,
+                deletionEnabled = values[2] as Boolean,
+                deletionMode = values[3] as DeletionMode,
+                deletionDelayMs = values[4] as Int,
+                showDeletionToast = values[5] as Boolean,
+                screenshotPattern = values[6] as String,
+                isRootAvailable = isRootAvailable,
             )
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = SettingsUiState.Loading,
         )
-
-    private val _showLicenses = MutableStateFlow(false)
-    override val showLicenses: StateFlow<Boolean> = _showLicenses.asStateFlow()
 
     override fun setHideDirectShare(enabled: Boolean) {
         prefsRepository.setBoolean(Prefs.HIDE_DIRECT_SHARE, enabled)
@@ -55,12 +72,28 @@ class SettingsViewModelImpl(
         prefsRepository.setBoolean(Prefs.HIDE_QUICK_SHARE, enabled)
     }
 
-    override fun showLicenses() {
-        _showLicenses.value = true
+    override fun setDeletionEnabled(enabled: Boolean) {
+        prefsRepository.setBoolean(Prefs.DELETION_ENABLED, enabled)
     }
 
-    override fun hideLicenses() {
-        _showLicenses.value = false
+    override fun setDeletionMode(mode: DeletionMode) {
+        prefsRepository.setEnum(Prefs.DELETION_MODE, mode)
+    }
+
+    override fun setDeletionDelayMs(delayMs: Int) {
+        prefsRepository.setInt(Prefs.DELETION_DELAY_MS, delayMs.coerceIn(5_000, 60_000))
+    }
+
+    override fun setShowDeletionToast(enabled: Boolean) {
+        prefsRepository.setBoolean(Prefs.SHOW_DELETION_TOAST, enabled)
+    }
+
+    override fun setScreenshotPattern(pattern: String) {
+        prefsRepository.setString(Prefs.SCREENSHOT_PATTERN, pattern)
+    }
+
+    override fun syncLocalToRemote() {
+        prefsRepository.syncLocalToRemote()
     }
 }
 

@@ -8,12 +8,14 @@ import java.util.concurrent.atomic.AtomicReference
 data class PendingDeletion(
     val uri: Uri,
     val filename: String,
+    val filePath: String?,
     val activity: Activity,
 )
 
 data class ShareSession(
     val uri: Uri,
     val filename: String,
+    val filePath: String?,
     val shouldDelete: Boolean,
     val activityRef: WeakReference<Activity>,
 )
@@ -24,10 +26,19 @@ object ShareState {
     fun set(
         uri: Uri,
         filename: String,
+        filePath: String?,
         shouldDelete: Boolean,
         activity: Activity,
     ) {
-        currentSession.set(ShareSession(uri, filename, shouldDelete, WeakReference(activity)))
+        currentSession.set(
+            ShareSession(
+                uri = uri,
+                filename = filename,
+                filePath = filePath,
+                shouldDelete = shouldDelete,
+                activityRef = WeakReference(activity),
+            ),
+        )
     }
 
     fun updateShouldDelete(value: Boolean) {
@@ -40,6 +51,6 @@ object ShareState {
         val session = currentSession.getAndSet(null) ?: return null
         if (!session.shouldDelete) return null
         val activity = session.activityRef.get() ?: return null
-        return PendingDeletion(session.uri, session.filename, activity)
+        return PendingDeletion(session.uri, session.filename, session.filePath, activity)
     }
 }

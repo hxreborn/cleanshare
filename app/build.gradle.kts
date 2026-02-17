@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.agp.app)
     alias(libs.plugins.kotlin)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.serialization)
     alias(libs.plugins.aboutlibraries)
     alias(libs.plugins.ktlint)
 }
@@ -107,4 +108,8 @@ dependencies {
     implementation(libs.aboutlibraries.core)
     implementation(libs.aboutlibraries.compose)
     implementation(libs.splashscreen)
+    implementation(libs.libsu.core)
+    implementation(libs.libsu.io)
+    implementation(libs.navigation3.runtime)
+    implementation(libs.navigation3.ui)
 }

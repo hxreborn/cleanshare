@@ -4,34 +4,52 @@ package eu.hxreborn.cleanshare.ui.screen
 
 import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.SpeakerNotes
 import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Gavel
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.NearbyOff
+import androidx.compose.material.icons.outlined.SwapHoriz
+import androidx.compose.material.icons.outlined.TextFields
+import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,15 +57,20 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import eu.hxreborn.cleanshare.BuildConfig
 import eu.hxreborn.cleanshare.R
+import eu.hxreborn.cleanshare.prefs.DeletionMode
 import eu.hxreborn.cleanshare.ui.state.SettingsUiState
 import eu.hxreborn.cleanshare.ui.theme.Tokens
+import eu.hxreborn.cleanshare.ui.util.RegexEditDialog
+import eu.hxreborn.cleanshare.ui.util.drawVerticalScrollbar
 import eu.hxreborn.cleanshare.ui.util.shapeForPosition
 import eu.hxreborn.cleanshare.ui.viewmodel.SettingsViewModel
+import eu.hxreborn.cleanshare.util.DEFAULT_SCREENSHOT_PATTERN
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import me.zhanghai.compose.preference.SwitchPreference
 import me.zhanghai.compose.preference.preference
@@ -58,13 +81,16 @@ private const val ISSUES_URL = "https://github.com/hxreborn/cleanshare/issues/ne
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel) {
+fun SettingsScreen(
+    viewModel: SettingsViewModel,
+    onNavigateToLicenses: () -> Unit,
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        contentWindowInsets = WindowInsets.navigationBars,
         topBar = {
             LargeTopAppBar(
                 title = {
@@ -106,7 +132,12 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                     state = state,
                     onHideDirectShareChange = viewModel::setHideDirectShare,
                     onHideQuickShareChange = viewModel::setHideQuickShare,
-                    onLicensesClick = viewModel::showLicenses,
+                    onDeletionEnabledChange = viewModel::setDeletionEnabled,
+                    onDeletionModeChange = viewModel::setDeletionMode,
+                    onDeletionDelayChange = viewModel::setDeletionDelayMs,
+                    onShowDeletionToastChange = viewModel::setShowDeletionToast,
+                    onScreenshotPatternChange = viewModel::setScreenshotPattern,
+                    onLicensesClick = onNavigateToLicenses,
                 )
             }
         }
@@ -119,21 +150,56 @@ private fun SettingsContent(
     state: SettingsUiState.Ready,
     onHideDirectShareChange: (Boolean) -> Unit,
     onHideQuickShareChange: (Boolean) -> Unit,
+    onDeletionEnabledChange: (Boolean) -> Unit,
+    onDeletionModeChange: (DeletionMode) -> Unit,
+    onDeletionDelayChange: (Int) -> Unit,
+    onShowDeletionToastChange: (Boolean) -> Unit,
+    onScreenshotPatternChange: (String) -> Unit,
     onLicensesClick: () -> Unit,
 ) {
     val context = LocalContext.current
     val surface = MaterialTheme.colorScheme.surfaceVariant
+    var showModeDialog by remember { mutableStateOf(false) }
+    var showPatternDialog by remember { mutableStateOf(false) }
+
+    if (showModeDialog) {
+        DeletionModeDialog(
+            current = state.deletionMode,
+            onSelect = { mode ->
+                onDeletionModeChange(mode)
+                showModeDialog = false
+            },
+            onDismiss = { showModeDialog = false },
+        )
+    }
+
+    if (showPatternDialog) {
+        RegexEditDialog(
+            title = stringResource(R.string.pref_screenshot_pattern_title),
+            current = state.screenshotPattern,
+            default = DEFAULT_SCREENSHOT_PATTERN,
+            onConfirm = { pattern ->
+                onScreenshotPatternChange(pattern)
+                showPatternDialog = false
+            },
+            onDismiss = { showPatternDialog = false },
+        )
+    }
+
+    val listState = rememberLazyListState()
 
     ProvidePreferenceLocals {
         LazyColumn(
+            state = listState,
             modifier =
                 Modifier
                     .fillMaxSize()
+                    .drawVerticalScrollbar(listState)
                     .padding(horizontal = 8.dp),
             contentPadding =
                 PaddingValues(
                     top = innerPadding.calculateTopPadding(),
-                    bottom = innerPadding.calculateBottomPadding() + 16.dp,
+                    bottom = innerPadding.calculateBottomPadding() + 32.dp,
                 ),
         ) {
             preferenceCategory(
@@ -199,11 +265,153 @@ private fun SettingsContent(
             )
 
             preferenceCategory(
+                key = "deletion",
+                title = { Text(stringResource(R.string.pref_category_deletion)) },
+            )
+
+            val deletionItemCount = if (state.deletionEnabled) 5 else 1
+
+            val deletionEnabledShape = shapeForPosition(deletionItemCount, 0)
+            switchPreference(
+                modifier =
+                    Modifier
+                        .padding(horizontal = 8.dp)
+                        .background(color = surface, shape = deletionEnabledShape)
+                        .clip(deletionEnabledShape),
+                key = "deletion_enabled",
+                value = state.deletionEnabled,
+                enabled = { state.isRootAvailable },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Outlined.DeleteOutline,
+                        contentDescription = null,
+                    )
+                },
+                title = {
+                    Text(
+                        text = stringResource(R.string.pref_deletion_enabled_title),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                },
+                summary = {
+                    Text(
+                        text =
+                            if (state.isRootAvailable) {
+                                stringResource(R.string.pref_deletion_enabled_summary)
+                            } else {
+                                stringResource(R.string.pref_deletion_requires_root)
+                            },
+                    )
+                },
+                onValueChange = onDeletionEnabledChange,
+            )
+
+            if (state.deletionEnabled) {
+                item { Spacer(Modifier.height(2.dp)) }
+
+                val modeShape = shapeForPosition(deletionItemCount, 1)
+                preference(
+                    modifier =
+                        Modifier
+                            .padding(horizontal = 8.dp)
+                            .background(color = surface, shape = modeShape)
+                            .clip(modeShape),
+                    key = "deletion_mode",
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Outlined.SwapHoriz,
+                            contentDescription = null,
+                        )
+                    },
+                    title = {
+                        Text(
+                            text = stringResource(R.string.pref_deletion_mode_title),
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    },
+                    summary = { Text(text = stringResource(state.deletionMode.summaryRes)) },
+                    onClick = { showModeDialog = true },
+                )
+
+                item { Spacer(Modifier.height(2.dp)) }
+
+                val delayShape = shapeForPosition(deletionItemCount, 2)
+                item(key = "deletion_delay") {
+                    DeletionDelayItem(
+                        delayMs = state.deletionDelayMs,
+                        onDelayChange = onDeletionDelayChange,
+                        modifier =
+                            Modifier
+                                .padding(horizontal = 8.dp)
+                                .background(color = surface, shape = delayShape)
+                                .clip(delayShape),
+                    )
+                }
+
+                item { Spacer(Modifier.height(2.dp)) }
+
+                val toastShape = shapeForPosition(deletionItemCount, 3)
+                switchPreference(
+                    modifier =
+                        Modifier
+                            .padding(horizontal = 8.dp)
+                            .background(color = surface, shape = toastShape)
+                            .clip(toastShape),
+                    key = "show_deletion_toast",
+                    value = state.showDeletionToast,
+                    icon = {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.SpeakerNotes,
+                            contentDescription = null,
+                        )
+                    },
+                    title = {
+                        Text(
+                            text = stringResource(R.string.pref_show_toast_title),
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    },
+                    summary = {
+                        Text(text = stringResource(R.string.pref_show_toast_summary))
+                    },
+                    onValueChange = onShowDeletionToastChange,
+                )
+
+                item { Spacer(Modifier.height(2.dp)) }
+
+                val patternShape = shapeForPosition(deletionItemCount, 4)
+                preference(
+                    modifier =
+                        Modifier
+                            .padding(horizontal = 8.dp)
+                            .background(color = surface, shape = patternShape)
+                            .clip(patternShape),
+                    key = "screenshot_pattern",
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Outlined.TextFields,
+                            contentDescription = null,
+                        )
+                    },
+                    title = {
+                        Text(
+                            text = stringResource(R.string.pref_screenshot_pattern_title),
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    },
+                    summary = { Text(text = stringResource(R.string.pref_screenshot_pattern_summary)) },
+                    onClick = { showPatternDialog = true },
+                )
+            }
+
+            preferenceCategory(
                 key = "about",
                 title = { Text(stringResource(R.string.pref_category_about)) },
             )
 
             val aboutItemCount = 4
+
+            // 1. App version
             val versionShape = shapeForPosition(aboutItemCount, 0)
             preference(
                 modifier =
@@ -214,7 +422,7 @@ private fun SettingsContent(
                 key = "app_version",
                 icon = {
                     Icon(
-                        imageVector = Icons.Outlined.Info,
+                        imageVector = Icons.Rounded.Info,
                         contentDescription = null,
                     )
                 },
@@ -227,10 +435,21 @@ private fun SettingsContent(
                 summary = {
                     Text(text = "v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
                 },
+                onClick = {
+                    val msg =
+                        context.getString(
+                            R.string.pref_version_easter_egg,
+                            BuildConfig.VERSION_NAME,
+                            BuildConfig.VERSION_CODE,
+                            BuildConfig.BUILD_TYPE,
+                        )
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                },
             )
 
             item { Spacer(Modifier.height(2.dp)) }
 
+            // 2. Source code
             val gitRepoShape = shapeForPosition(aboutItemCount, 1)
             preference(
                 modifier =
@@ -259,35 +478,8 @@ private fun SettingsContent(
 
             item { Spacer(Modifier.height(2.dp)) }
 
-            val issuesShape = shapeForPosition(aboutItemCount, 2)
-            preference(
-                modifier =
-                    Modifier
-                        .padding(horizontal = 8.dp)
-                        .background(color = surface, shape = issuesShape)
-                        .clip(issuesShape),
-                key = "report_issue",
-                icon = {
-                    Icon(
-                        imageVector = Icons.Outlined.BugReport,
-                        contentDescription = null,
-                    )
-                },
-                title = {
-                    Text(
-                        text = stringResource(R.string.pref_issues_title),
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                },
-                summary = {
-                    Text(text = stringResource(R.string.pref_issues_summary))
-                },
-                onClick = { context.openUrl(ISSUES_URL) },
-            )
-
-            item { Spacer(Modifier.height(2.dp)) }
-
-            val licensesShape = shapeForPosition(aboutItemCount, 3)
+            // 3. Licenses
+            val licensesShape = shapeForPosition(aboutItemCount, 2)
             preference(
                 modifier =
                     Modifier
@@ -312,7 +504,118 @@ private fun SettingsContent(
                 },
                 onClick = onLicensesClick,
             )
+
+            item { Spacer(Modifier.height(2.dp)) }
+
+            // 4. Report issue
+            val issuesShape = shapeForPosition(aboutItemCount, 3)
+            preference(
+                modifier =
+                    Modifier
+                        .padding(horizontal = 8.dp)
+                        .background(color = surface, shape = issuesShape)
+                        .clip(issuesShape),
+                key = "report_issue",
+                icon = {
+                    Icon(
+                        imageVector = Icons.Outlined.BugReport,
+                        contentDescription = null,
+                    )
+                },
+                title = {
+                    Text(
+                        text = stringResource(R.string.pref_issues_title),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                },
+                summary = {
+                    Text(text = stringResource(R.string.pref_issues_summary))
+                },
+                onClick = { context.openUrl(ISSUES_URL) },
+            )
         }
+    }
+}
+
+@Composable
+private fun DeletionModeDialog(
+    current: DeletionMode,
+    onSelect: (DeletionMode) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.pref_deletion_mode_dialog_title)) },
+        text = {
+            Column {
+                DeletionMode.entries.forEach { mode ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .selectable(
+                                    selected = mode == current,
+                                    onClick = { onSelect(mode) },
+                                    role = Role.RadioButton,
+                                ).padding(vertical = 8.dp),
+                    ) {
+                        RadioButton(
+                            selected = mode == current,
+                            onClick = null,
+                        )
+                        Text(
+                            text = mode.displayName,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(start = 8.dp),
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.cancel))
+            }
+        },
+    )
+}
+
+@Composable
+private fun DeletionDelayItem(
+    delayMs: Int,
+    onDelayChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Outlined.Timer,
+                contentDescription = null,
+                modifier = Modifier.padding(end = 16.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.pref_deletion_delay_title),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                Text(
+                    text = stringResource(R.string.pref_deletion_delay_summary, delayMs / 1000),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        Slider(
+            value = delayMs.toFloat(),
+            onValueChange = { onDelayChange(it.toInt()) },
+            valueRange = 5_000f..60_000f,
+            steps = 10,
+            modifier = Modifier.padding(start = 40.dp),
+        )
     }
 }
 

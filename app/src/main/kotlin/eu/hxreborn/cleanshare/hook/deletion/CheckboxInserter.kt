@@ -6,20 +6,23 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import eu.hxreborn.cleanshare.util.CHECKBOX_MARGIN_END_DP
+import android.widget.LinearLayout
 import eu.hxreborn.cleanshare.util.CHECKBOX_MARGIN_TOP_DP
 import eu.hxreborn.cleanshare.util.CHECKBOX_VIEW_TAG
-import eu.hxreborn.cleanshare.util.HEADLINE_ROW_HEIGHT_DP
 import eu.hxreborn.cleanshare.util.debugLog
 
 internal object CheckboxInserter {
     // Tries insertion strategies in order of preference:
-    // 1. Headline row (A13+) - inline with "Sharing image" text
-    // 2. Below preview (A11-12) - centered between preview and app icons
+    // 1. Preview content area (A11+) — centered below image preview / action row
+    // 2. Headline row (A15+) — right-aligned inline with headline text
+    // 3. Below header (A11+) — centered below chooser_header as last resort
     fun insert(
         activity: Activity,
         view: View,
-    ): Boolean = insertIntoHeadlineRow(activity, view) || insertBelowPreview(activity, view)
+    ): Boolean =
+        insertIntoPreviewContent(activity, view) ||
+            insertIntoHeadlineRow(activity, view) ||
+            insertBelowHeader(activity, view)
 
     // IntentResolver uses both android:id and com.android.intentresolver:id namespaces
     @SuppressLint("DiscouragedApi")
@@ -35,8 +38,50 @@ internal object CheckboxInserter {
         return 0
     }
 
-    // Insert into chooser_headline_row_container FrameLayout, right-aligned (A13+).
-    // https://cs.android.com/android/platform/superproject/+/master:packages/modules/IntentResolver/java/res/layout/chooser_headline_row.xml
+    // Append to the inner LinearLayout inside content_preview_container (A11+).
+    // The preview layout inflates a vertical LinearLayout as root on all versions:
+    // A11-12: LinearLayout → RelativeLayout (images) + action row include
+    // A13:    LinearLayout → CheckBox + image area + reselection + action ViewStub
+    // A14:    LinearLayout → headline include + ScrollableImagePreviewView + action merge
+    // A15-16: LinearLayout → headline ViewStub + ScrollableImagePreviewView + action merge
+    //
+    // AOSP refs:
+    // A11: frameworks/base/+/android-11.0.0_r1/core/res/res/layout/chooser_grid_preview_image.xml
+    // A13: IntentResolver/+/android13-qpr3-release/java/res/layout/chooser_grid_preview_image.xml
+    // A14: IntentResolver/+/android14-release/java/res/layout/chooser_grid_preview_image.xml
+    // A15: IntentResolver/+/android15-release/java/res/layout/chooser_grid_scrollable_preview.xml
+    private fun insertIntoPreviewContent(
+        activity: Activity,
+        view: View,
+    ): Boolean =
+        runCatching {
+            val id = findViewId(activity, "content_preview_container")
+            if (id == 0) return@runCatching false
+
+            val container = activity.findViewById<ViewGroup>(id) ?: return@runCatching false
+            if (container.childCount == 0) return@runCatching false
+
+            val inner = container.getChildAt(0) as? ViewGroup ?: return@runCatching false
+            if (inner.findViewWithTag<View>(CHECKBOX_VIEW_TAG) != null) return@runCatching true
+
+            val density = activity.resources.displayMetrics.density
+            val params =
+                LinearLayout
+                    .LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                    ).apply {
+                        gravity = Gravity.CENTER_HORIZONTAL
+                        topMargin = (CHECKBOX_MARGIN_TOP_DP * density).toInt()
+                    }
+            view.layoutParams = params
+            inner.addView(view)
+            debugLog { "insertIntoPreviewContent: added to content_preview_container inner layout" }
+            true
+        }.onFailure { debugLog(it) { "insertIntoPreviewContent failed" } }.getOrDefault(false)
+
+    // Insert right-aligned into chooser_headline_row_container FrameLayout (A15+).
+    // AOSP: IntentResolver/+/android15-release/java/res/layout/chooser_grid_scrollable_preview.xml
     private fun insertIntoHeadlineRow(
         activity: Activity,
         view: View,
@@ -49,14 +94,15 @@ internal object CheckboxInserter {
             if (container.findViewWithTag<View>(CHECKBOX_VIEW_TAG) != null) return@runCatching true
 
             val density = activity.resources.displayMetrics.density
+            val marginEnd = (16 * density).toInt()
             val params =
                 FrameLayout
                     .LayoutParams(
                         FrameLayout.LayoutParams.WRAP_CONTENT,
-                        (HEADLINE_ROW_HEIGHT_DP * density).toInt(),
+                        FrameLayout.LayoutParams.WRAP_CONTENT,
                     ).apply {
-                        gravity = Gravity.END or Gravity.TOP
-                        marginEnd = (CHECKBOX_MARGIN_END_DP * density).toInt()
+                        gravity = Gravity.END or Gravity.CENTER_VERTICAL
+                        this.marginEnd = marginEnd
                     }
             view.layoutParams = params
             container.addView(view)
@@ -64,9 +110,9 @@ internal object CheckboxInserter {
             true
         }.onFailure { debugLog(it) { "insertIntoHeadlineRow failed" } }.getOrDefault(false)
 
-    // Insert into chooser_header after "Share" title (A11-12).
-    // https://cs.android.com/android/platform/superproject/+/android-11.0.0_r1:frameworks/base/core/res/res/layout/chooser_grid.xml;l=32
-    private fun insertBelowPreview(
+    // Insert centered below chooser_header (A11+, universal fallback).
+    // AOSP ref: frameworks/base/+/android-11.0.0_r1/core/res/res/layout/chooser_grid.xml
+    private fun insertBelowHeader(
         activity: Activity,
         view: View,
     ): Boolean =
@@ -78,17 +124,18 @@ internal object CheckboxInserter {
             if (header.findViewWithTag<View>(CHECKBOX_VIEW_TAG) != null) return@runCatching true
 
             val density = activity.resources.displayMetrics.density
-            view.tag = CHECKBOX_VIEW_TAG
-            view.layoutParams =
-                ViewGroup
-                    .MarginLayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
+            val params =
+                LinearLayout
+                    .LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
                     ).apply {
+                        gravity = Gravity.CENTER_HORIZONTAL
                         topMargin = (CHECKBOX_MARGIN_TOP_DP * density).toInt()
                     }
+            view.layoutParams = params
             header.addView(view)
-            debugLog { "insertBelowPreview: added to chooser_header" }
+            debugLog { "insertBelowHeader: added to chooser_header" }
             true
-        }.onFailure { debugLog(it) { "insertBelowPreview failed" } }.getOrDefault(false)
+        }.onFailure { debugLog(it) { "insertBelowHeader failed" } }.getOrDefault(false)
 }

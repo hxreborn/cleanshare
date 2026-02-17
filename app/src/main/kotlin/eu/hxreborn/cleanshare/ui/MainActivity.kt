@@ -6,10 +6,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.ui.NavDisplay
 import eu.hxreborn.cleanshare.App
 import eu.hxreborn.cleanshare.prefs.PrefsRepository
+import eu.hxreborn.cleanshare.ui.navigation.Screen
 import eu.hxreborn.cleanshare.ui.screen.LicensesScreen
 import eu.hxreborn.cleanshare.ui.screen.SettingsScreen
 import eu.hxreborn.cleanshare.ui.theme.CleanShareTheme
@@ -34,6 +37,7 @@ class MainActivity :
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
@@ -41,19 +45,31 @@ class MainActivity :
 
         setContent {
             CleanShareTheme {
-                val showLicenses by viewModel.showLicenses.collectAsStateWithLifecycle()
+                val backStack = rememberNavBackStack(Screen.Settings)
 
-                if (showLicenses) {
-                    LicensesScreen(onBack = viewModel::hideLicenses)
-                } else {
-                    SettingsScreen(viewModel)
-                }
+                NavDisplay(
+                    backStack = backStack,
+                    onBack = { backStack.removeLastOrNull() },
+                    entryProvider =
+                        entryProvider {
+                            entry<Screen.Settings> {
+                                SettingsScreen(
+                                    viewModel = viewModel,
+                                    onNavigateToLicenses = { backStack.add(Screen.Licenses) },
+                                )
+                            }
+                            entry<Screen.Licenses> {
+                                LicensesScreen(onBack = { backStack.removeLastOrNull() })
+                            }
+                        },
+                )
             }
         }
     }
 
     override fun onServiceBind(service: XposedService) {
         remotePrefs = service.getRemotePreferences(PREFS_FILE_NAME)
+        viewModel.syncLocalToRemote()
     }
 
     override fun onServiceDied(service: XposedService) {

@@ -6,10 +6,15 @@ import android.content.Context
 import android.net.Uri
 import android.widget.CheckBox
 import androidx.core.content.edit
+import eu.hxreborn.cleanshare.CleanShareModule
+import eu.hxreborn.cleanshare.prefs.DeletionMode
+import eu.hxreborn.cleanshare.util.CHECKBOX_INSERT_RETRY_DELAY_MS
 import eu.hxreborn.cleanshare.util.CHECKBOX_TEXT_SIZE_SP
 import eu.hxreborn.cleanshare.util.CHECKBOX_VIEW_TAG
 import eu.hxreborn.cleanshare.util.PREFS_FILE_NAME
 import eu.hxreborn.cleanshare.util.PREF_KEY_DELETE_AFTER_SHARE
+import eu.hxreborn.cleanshare.util.PREF_KEY_DELETION_ENABLED
+import eu.hxreborn.cleanshare.util.PREF_KEY_DELETION_MODE
 import eu.hxreborn.cleanshare.util.debugLog
 import io.github.libxposed.api.XposedInterface.AfterHookCallback
 import io.github.libxposed.api.XposedInterface.Hooker
@@ -30,57 +35,94 @@ class CheckboxHook : Hooker {
 
             val shareIntent = extractShareIntent(rawIntent) ?: return
             val uri = extractImageUri(shareIntent) ?: return
+            val screenshotInfo = getScreenshotInfo(activity, uri) ?: return
 
-            val filename = getFilenameIfScreenshot(activity, uri) ?: return
+            val remotePrefs =
+                runCatching {
+                    CleanShareModule.instance?.getRemotePreferences(PREFS_FILE_NAME)
+                }.getOrNull() ?: return
 
-            // Defer insertion since views aren't inflated yet during onCreate
-            activity.window.decorView.post { insertCheckbox(activity, uri, filename) }
+            val enabled = remotePrefs.getBoolean(PREF_KEY_DELETION_ENABLED, false)
+            if (!enabled) return
+
+            val modeKey =
+                remotePrefs.getString(
+                    PREF_KEY_DELETION_MODE,
+                    DeletionMode.ASK_EACH_TIME.key,
+                ) ?: DeletionMode.ASK_EACH_TIME.key
+            val mode = DeletionMode.fromKey(modeKey)
+
+            when (mode) {
+                DeletionMode.ALWAYS -> {
+                    ShareState.set(
+                        uri,
+                        screenshotInfo.filename,
+                        screenshotInfo.filePath,
+                        shouldDelete = true,
+                        activity,
+                    )
+                }
+
+                DeletionMode.ASK_EACH_TIME -> {
+                    activity.window.decorView.post {
+                        insertCheckbox(activity, uri, screenshotInfo)
+                    }
+                }
+            }
         }
 
         private fun insertCheckbox(
             activity: Activity,
             uri: Uri,
-            filename: String,
+            screenshotInfo: ScreenshotInfo,
         ) {
             runCatching {
-                val checkBox = createCheckbox(activity)
-                initializeShareState(uri, filename, checkBox.isChecked, activity)
-                bindCheckboxToPrefs(checkBox, activity)
+                val localPrefs =
+                    activity.getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE)
+                val checked = localPrefs.getBoolean(PREF_KEY_DELETE_AFTER_SHARE, false)
+
+                val checkBox =
+                    CheckBox(activity).apply {
+                        text = "Delete after sharing"
+                        tag = CHECKBOX_VIEW_TAG
+                        textSize = CHECKBOX_TEXT_SIZE_SP
+                        isChecked = checked
+                        setOnCheckedChangeListener { _, isChecked ->
+                            ShareState.updateShouldDelete(isChecked)
+                            localPrefs.edit {
+                                putBoolean(PREF_KEY_DELETE_AFTER_SHARE, isChecked)
+                            }
+                        }
+                    }
+
+                ShareState.set(
+                    uri,
+                    screenshotInfo.filename,
+                    screenshotInfo.filePath,
+                    checked,
+                    activity,
+                )
 
                 val inserted = CheckboxInserter.insert(activity, checkBox)
                 debugLog { "checkbox inserted=$inserted" }
+
+                if (!inserted) {
+                    activity.window.decorView.postDelayed(
+                        { retryInsert(activity, checkBox) },
+                        CHECKBOX_INSERT_RETRY_DELAY_MS,
+                    )
+                }
             }.onFailure { debugLog(it) { "insertCheckbox failed" } }
         }
 
-        @SuppressLint("SetTextI18n")
-        private fun createCheckbox(activity: Activity): CheckBox {
-            val prefs = activity.getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE)
-            return CheckBox(activity).apply {
-                text = "Delete after sharing"
-                tag = CHECKBOX_VIEW_TAG
-                textSize = CHECKBOX_TEXT_SIZE_SP
-                isChecked = prefs.getBoolean(PREF_KEY_DELETE_AFTER_SHARE, false)
-            }
-        }
-
-        private fun initializeShareState(
-            uri: Uri,
-            filename: String,
-            checked: Boolean,
+        private fun retryInsert(
             activity: Activity,
-        ) {
-            ShareState.set(uri, filename, checked, activity)
-        }
-
-        private fun bindCheckboxToPrefs(
             checkBox: CheckBox,
-            activity: Activity,
         ) {
-            val prefs = activity.getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE)
-            checkBox.setOnCheckedChangeListener { _, checked ->
-                ShareState.updateShouldDelete(checked)
-                prefs.edit { putBoolean(PREF_KEY_DELETE_AFTER_SHARE, checked) }
-            }
+            runCatching {
+                val inserted = CheckboxInserter.insert(activity, checkBox)
+                debugLog { "checkbox retry inserted=$inserted" }
+            }.onFailure { debugLog(it) { "retryInsert failed" } }
         }
     }
 }

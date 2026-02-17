@@ -4,7 +4,9 @@ package eu.hxreborn.cleanshare.ui.screen
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import eu.hxreborn.cleanshare.R
+import eu.hxreborn.cleanshare.ui.util.drawVerticalScrollbar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,13 +39,16 @@ fun LicensesScreen(onBack: () -> Unit) {
                 },
             )
         },
-        contentWindowInsets = WindowInsets(0),
+        contentWindowInsets = WindowInsets.navigationBars,
     ) { innerPadding ->
+        val listState = rememberLazyListState()
         LibrariesContainer(
             modifier =
                 Modifier
                     .fillMaxSize()
+                    .drawVerticalScrollbar(listState)
                     .padding(innerPadding),
+            lazyListState = listState,
         )
     }
 }

@@ -1,8 +1,12 @@
 package eu.hxreborn.cleanshare.hook.deletion
 
-import android.content.Intent
-import eu.hxreborn.cleanshare.util.ACTION_DELETE_SCREENSHOT
-import eu.hxreborn.cleanshare.util.DELETE_DELAY_MS
+import android.net.Uri
+import android.os.Bundle
+import eu.hxreborn.cleanshare.CleanShareModule
+import eu.hxreborn.cleanshare.util.DEFAULT_DELETION_DELAY_MS
+import eu.hxreborn.cleanshare.util.DELETION_PROVIDER_AUTHORITY
+import eu.hxreborn.cleanshare.util.PREFS_FILE_NAME
+import eu.hxreborn.cleanshare.util.PREF_KEY_DELETION_DELAY_MS
 import eu.hxreborn.cleanshare.util.debugLog
 import io.github.libxposed.api.XposedInterface.AfterHookCallback
 import io.github.libxposed.api.XposedInterface.Hooker
@@ -19,17 +23,31 @@ class DeletionHook : Hooker {
 
             val pending = ShareState.consumeIfPendingDeletion() ?: return
 
-            debugLog { "Sending deletion broadcast file=${pending.filename}" }
+            debugLog { "Enqueuing deletion filename=${pending.filename}" }
             runCatching {
-                val intent =
-                    Intent(ACTION_DELETE_SCREENSHOT).apply {
-                        putExtra("uri", pending.uri.toString())
-                        putExtra("filename", pending.filename)
-                        putExtra("delay_ms", DELETE_DELAY_MS)
+                val delayMs =
+                    CleanShareModule.instance
+                        ?.getRemotePreferences(PREFS_FILE_NAME)
+                        ?.getInt(PREF_KEY_DELETION_DELAY_MS, DEFAULT_DELETION_DELAY_MS)
+                        ?.toLong()
+                        ?: DEFAULT_DELETION_DELAY_MS.toLong()
+
+                val extras =
+                    Bundle().apply {
+                        putString("uri", pending.uri.toString())
+                        putString("filename", pending.filename)
+                        putString("file_path", pending.filePath)
+                        putLong("delay_ms", delayMs)
                     }
-                pending.activity.sendBroadcast(intent)
-                debugLog { "Broadcast sent; if no deletion, verify 'system' scope and reboot" }
-            }.onFailure { debugLog(it) { "Failed to send deletion broadcast" } }
+
+                pending.activity.contentResolver.call(
+                    Uri.parse("content://$DELETION_PROVIDER_AUTHORITY"),
+                    "enqueue",
+                    null,
+                    extras,
+                )
+                debugLog { "ContentProvider enqueue called" }
+            }.onFailure { debugLog(it) { "Failed to enqueue deletion" } }
         }
     }
 }

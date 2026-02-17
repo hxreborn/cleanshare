@@ -15,6 +15,11 @@ dependencyResolutionManagement {
                 includeGroup("io.github.libxposed")
             }
         }
+        maven("https://jitpack.io") {
+            content {
+                includeGroup("com.github.topjohnwu.libsu")
+            }
+        }
     }
     versionCatalogs {
         create("libs")

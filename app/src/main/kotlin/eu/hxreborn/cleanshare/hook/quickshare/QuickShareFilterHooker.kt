@@ -44,7 +44,8 @@ class QuickShareFilterHooker : Hooker {
             module.log("[QuickShare] list size before filter: ${list.size}")
 
             // Log all GMS activities
-            list.filter { it.activityInfo?.packageName == "com.google.android.gms" }
+            list
+                .filter { it.activityInfo?.packageName == "com.google.android.gms" }
                 .forEach { info ->
                     module.log("[QuickShare] GMS activity: ${info.activityInfo?.name}")
                 }

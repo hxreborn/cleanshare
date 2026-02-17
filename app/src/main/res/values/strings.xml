@@ -10,6 +10,8 @@
     <!-- Feature prefs -->
     <string name="pref_hide_direct_share_title">Hide Direct Share row</string>
     <string name="pref_hide_direct_share_summary">Remove contact suggestions from share sheet</string>
+    <string name="pref_hide_quick_share_title">Hide Quick Share</string>
+    <string name="pref_hide_quick_share_summary">Remove Quick Share from share targets</string>
 
     <!-- About prefs -->
     <string name="pref_version_title">Version</string>

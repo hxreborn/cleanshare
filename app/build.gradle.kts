@@ -14,8 +14,8 @@ android {
         applicationId = "eu.hxreborn.cleanshare"
         minSdk = 30
         targetSdk = 36
-        versionCode = 110
-        versionName = "1.1.0"
+        versionCode = 199
+        versionName = "2.0.0-test-debug"
     }
 
     signingConfigs {
@@ -106,4 +106,5 @@ dependencies {
     implementation(libs.compose.preference)
     implementation(libs.aboutlibraries.core)
     implementation(libs.aboutlibraries.compose)
+    implementation(libs.splashscreen)
 }

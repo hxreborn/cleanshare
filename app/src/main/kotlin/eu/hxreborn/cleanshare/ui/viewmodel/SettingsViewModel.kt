@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
 abstract class SettingsViewModel : ViewModel() {
@@ -18,6 +18,8 @@ abstract class SettingsViewModel : ViewModel() {
     abstract val showLicenses: StateFlow<Boolean>
 
     abstract fun setHideDirectShare(enabled: Boolean)
+
+    abstract fun setHideQuickShare(enabled: Boolean)
 
     abstract fun showLicenses()
 
@@ -28,20 +30,29 @@ class SettingsViewModelImpl(
     private val prefsRepository: PrefsRepository,
 ) : SettingsViewModel() {
     override val uiState: StateFlow<SettingsUiState> =
-        prefsRepository
-            .observeBoolean(Prefs.HIDE_DIRECT_SHARE)
-            .map { SettingsUiState.Ready(hideDirectShare = it) }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = SettingsUiState.Loading,
+        combine(
+            prefsRepository.observeBoolean(Prefs.HIDE_DIRECT_SHARE),
+            prefsRepository.observeBoolean(Prefs.HIDE_QUICK_SHARE),
+        ) { hideDirectShare, hideQuickShare ->
+            SettingsUiState.Ready(
+                hideDirectShare = hideDirectShare,
+                hideQuickShare = hideQuickShare,
             )
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = SettingsUiState.Loading,
+        )
 
     private val _showLicenses = MutableStateFlow(false)
     override val showLicenses: StateFlow<Boolean> = _showLicenses.asStateFlow()
 
     override fun setHideDirectShare(enabled: Boolean) {
         prefsRepository.setBoolean(Prefs.HIDE_DIRECT_SHARE, enabled)
+    }
+
+    override fun setHideQuickShare(enabled: Boolean) {
+        prefsRepository.setBoolean(Prefs.HIDE_QUICK_SHARE, enabled)
     }
 
     override fun showLicenses() {

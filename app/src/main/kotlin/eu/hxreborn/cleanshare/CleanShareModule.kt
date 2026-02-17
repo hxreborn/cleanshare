@@ -11,12 +11,14 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.UserHandle
 import android.widget.Toast
 import androidx.core.net.toUri
 import eu.hxreborn.cleanshare.hook.deletion.CheckboxHook
 import eu.hxreborn.cleanshare.hook.deletion.DeletionHook
 import eu.hxreborn.cleanshare.hook.directshare.LowRamHooker
 import eu.hxreborn.cleanshare.hook.directshare.ShareTargetsHooker
+import eu.hxreborn.cleanshare.hook.quickshare.QuickShareFilterHooker
 import eu.hxreborn.cleanshare.util.ACTION_DELETE_SCREENSHOT
 import eu.hxreborn.cleanshare.util.findClass
 import eu.hxreborn.cleanshare.util.findMethodByName
@@ -69,6 +71,7 @@ class CleanShareModule(
             SHARE_SHEET_PKG -> {
                 hookLowRam()
                 hookScreenshotDelete(param.classLoader)
+                hookQuickShareFilter(param.classLoader)
             }
 
             AIAI_PKG -> {
@@ -137,6 +140,32 @@ class CleanShareModule(
         }.onFailure {
             log("ShareTargets hook failed: ${it.message}")
         }
+    }
+
+    // Filter Quick Share from share targets by hooking queryIntentActivitiesAsUser
+    // Works on both framework (A11-12) and IntentResolver (A13+)
+    private fun hookQuickShareFilter(classLoader: ClassLoader) {
+        val pmClass =
+            runCatching {
+                classLoader.loadClass("android.app.ApplicationPackageManager")
+            }.getOrNull() ?: run {
+                log("Quick Share hook: ApplicationPackageManager not found")
+                return
+            }
+
+        val methods = pmClass.declaredMethods.filter { it.name == "queryIntentActivitiesAsUser" }
+        if (methods.isEmpty()) {
+            log("Quick Share hook: no queryIntentActivitiesAsUser methods found")
+            return
+        }
+
+        methods.forEach { method ->
+            runCatching {
+                method.isAccessible = true
+                hook(method, QuickShareFilterHooker::class.java)
+            }
+        }
+        log("Hooked queryIntentActivitiesAsUser (${methods.size} overloads)")
     }
 
     private fun isValidDeletionUri(uri: Uri): Boolean {

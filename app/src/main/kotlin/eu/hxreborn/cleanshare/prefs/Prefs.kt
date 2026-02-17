@@ -6,4 +6,10 @@ object Prefs {
             key = "hide_direct_share",
             default = true,
         )
+
+    val HIDE_QUICK_SHARE =
+        BoolPref(
+            key = "hide_quick_share",
+            default = false,
+        )
 }

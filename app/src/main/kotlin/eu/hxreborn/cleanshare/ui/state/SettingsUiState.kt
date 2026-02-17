@@ -5,5 +5,6 @@ sealed interface SettingsUiState {
 
     data class Ready(
         val hideDirectShare: Boolean,
+        val hideQuickShare: Boolean,
     ) : SettingsUiState
 }

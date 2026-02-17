@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Gavel
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.NearbyOff
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -104,6 +105,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                     innerPadding = padding,
                     state = state,
                     onHideDirectShareChange = viewModel::setHideDirectShare,
+                    onHideQuickShareChange = viewModel::setHideQuickShare,
                     onLicensesClick = viewModel::showLicenses,
                 )
             }
@@ -116,6 +118,7 @@ private fun SettingsContent(
     innerPadding: PaddingValues,
     state: SettingsUiState.Ready,
     onHideDirectShareChange: (Boolean) -> Unit,
+    onHideQuickShareChange: (Boolean) -> Unit,
     onLicensesClick: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -138,7 +141,7 @@ private fun SettingsContent(
                 title = { Text(stringResource(R.string.pref_category_features)) },
             )
 
-            val featureItemCount = 1
+            val featureItemCount = 2
             val hideDirectShareShape = shapeForPosition(featureItemCount, 0)
             switchPreference(
                 modifier =
@@ -164,6 +167,35 @@ private fun SettingsContent(
                     Text(text = stringResource(R.string.pref_hide_direct_share_summary))
                 },
                 onValueChange = onHideDirectShareChange,
+            )
+
+            item { Spacer(Modifier.height(2.dp)) }
+
+            val hideQuickShareShape = shapeForPosition(featureItemCount, 1)
+            switchPreference(
+                modifier =
+                    Modifier
+                        .padding(horizontal = 8.dp)
+                        .background(color = surface, shape = hideQuickShareShape)
+                        .clip(hideQuickShareShape),
+                key = "hide_quick_share",
+                value = state.hideQuickShare,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Outlined.NearbyOff,
+                        contentDescription = null,
+                    )
+                },
+                title = {
+                    Text(
+                        text = stringResource(R.string.pref_hide_quick_share_title),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                },
+                summary = {
+                    Text(text = stringResource(R.string.pref_hide_quick_share_summary))
+                },
+                onValueChange = onHideQuickShareChange,
             )
 
             preferenceCategory(

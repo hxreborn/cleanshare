@@ -64,12 +64,20 @@ jobs:
           writeToFile: true
 
       - name: Create release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           body: ${{ steps.changelog.outputs.changes || format('Release {0}', github.ref_name) }}
           files: app/build/outputs/apk/release/app-release.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Mirror to Xposed-Modules-Repo
+        uses: softprops/action-gh-release@v2
+        with:
+          repository: Xposed-Modules-Repo/eu.hxreborn.cleanshare
+          token: ${{ secrets.XPOSED_REPO_PAT }}
+          body: ${{ steps.changelog.outputs.changes || format('Release {0}', github.ref_name) }}
+          files: app/build/outputs/apk/release/app-release.apk
+          fail_on_unmatched_files: true
+          make_latest: true
 
       - name: Clean up keystore
         if: always()

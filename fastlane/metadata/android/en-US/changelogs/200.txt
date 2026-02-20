@@ -1,0 +1,4 @@
+- Add settings app (Jetpack Compose)
+- Add Quick Share filtering
+- Add delete-after-sharing for screenshots (requires root)
+- Configurable deletion delay, toast, and filename pattern

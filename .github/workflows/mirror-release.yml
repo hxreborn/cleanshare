@@ -1,0 +1,60 @@
+name: Mirror Release to Xposed-Modules-Repo
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to mirror (e.g. v2.0.0)'
+        required: true
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Determine tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download release APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "${{ steps.tag.outputs.tag }}" \
+            --repo "${{ github.repository }}" \
+            --pattern "app-release.apk" \
+            --dir .
+
+      - name: Get release body
+        id: body
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BODY=$(gh release view "${{ steps.tag.outputs.tag }}" \
+            --repo "${{ github.repository }}" \
+            --json body --jq '.body')
+          {
+            echo "body<<ENDOFBODY"
+            echo "$BODY"
+            echo "ENDOFBODY"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Mirror to Xposed-Modules-Repo
+        uses: softprops/action-gh-release@v2
+        with:
+          repository: Xposed-Modules-Repo/eu.hxreborn.cleanshare
+          token: ${{ secrets.XPOSED_REPO_PAT }}
+          tag_name: ${{ steps.tag.outputs.tag }}
+          body: ${{ steps.body.outputs.body || format('Release {0}', steps.tag.outputs.tag) }}
+          files: app-release.apk
+          fail_on_unmatched_files: true
+          make_latest: true

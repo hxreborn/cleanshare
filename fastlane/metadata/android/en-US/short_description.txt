@@ -1,1 +1,1 @@
-Xposed module that removes Direct Share suggestions from Android's Share Sheet
+Xposed module to clean up Android's Share Sheet

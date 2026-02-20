@@ -1,21 +1,15 @@
-<p>A simple Xposed module to remove Direct Share suggestions from Android's Share Sheet.</p>
+<p>An Xposed module for cleaning up Android's Share Sheet. Added settings app, Quick Share filtering, and delete-after-sharing for screenshots.</p>
 
-<p>Direct Share shows a row of suggested contacts and conversations when sharing content. This module hides that row and blocks share target profiling.</p>
+<p><b>Features:</b></p>
+<ul>
+<li>Hide Direct Share suggestions and block share target profiling</li>
+<li>Hide Quick Share / Nearby Share</li>
+<li>Option to delete shared screenshots after sharing (root required)</li>
+<li>Built-in settings app</li>
+</ul>
 
 <p><b>Requirements:</b></p>
 <ul>
-<li>Android 11 or higher</li>
+<li>Android 11 or higher and AOSP rom</li>
 <li>LSPosed framework</li>
-</ul>
-
-<p><b>LSPosed scope:</b></p>
-<p>Android 13+:</p>
-<ul>
-<li>com.android.intentresolver</li>
-<li>com.google.android.as</li>
-</ul>
-<p>Android 11-12:</p>
-<ul>
-<li>android</li>
-<li>com.google.android.as</li>
 </ul>

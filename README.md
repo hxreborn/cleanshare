@@ -25,11 +25,19 @@ On devices
 with [Android System Intelligence](https://www.androidpolice.com/what-is-android-system-intelligence/),
 it also blocks backend shortcut queries to prevent share target profiling.
 
+## Features
+
+- Hide Direct Share suggestions from the share sheet
+- Block share target profiling via Android System Intelligence
+- Hide Quick Share / Nearby Share from share sheet results
+- Option to delete shared screenshots after sharing (root required)
+- Built-in settings app
+
 ## Requirements
 
 - Android 11 (API 30) or higher
 - [LSPosed](https://github.com/JingMatrix/LSPosed) (JingMatrix fork recommended)
-- Pixel or AOSP-based ROM (OEM skins untested)
+- Pixel or AOSP-based ROM (Other OEMs are untested)
 
 ## Installation
 
@@ -44,13 +52,11 @@ it also blocks backend shortcut queries to prevent share target profiling.
 3. Configure the scope:
 
    **Android 13+**
-    - System Server (`system`) for delete-after-share feature
     - Intent Resolver (`com.android.intentresolver`)
     - Android System Intelligence (`com.google.android.as`)
     - Ignore System Framework (`android`) even if marked "Recommended"
 
    **Android 11-12**
-    - System Server (`system`) for delete-after-share feature
     - System Framework (`android`)
     - Android System Intelligence (`com.google.android.as`)
 

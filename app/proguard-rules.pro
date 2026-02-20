@@ -30,9 +30,6 @@
 # ContentProvider registered in manifest must survive shrinking
 -keep class eu.hxreborn.cleanshare.deletion.DeletionProvider { *; }
 
-# libsu: keep root shell and file classes
--keep class com.topjohnwu.superuser.** { *; }
-
 # Enum classes used for JSON serialization in DeletionQueue
 -keepclassmembers enum eu.hxreborn.cleanshare.deletion.RequestStatus { *; }
 -keepclassmembers enum eu.hxreborn.cleanshare.prefs.DeletionMode { *; }
@@ -49,17 +46,11 @@
     public static int d(...);
 }
 
-# ViewModel
--keep class * extends androidx.lifecycle.ViewModel { *; }
--keep class * extends androidx.lifecycle.ViewModelProvider$Factory { *; }
-
-# Compose
--dontwarn androidx.compose.**
--keep class androidx.compose.** { *; }
-
-# AboutLibraries
--keep class com.mikepenz.aboutlibraries.** { *; }
-
-# Optimization
+# Obfuscation
 -repackageclasses
 -allowaccessmodification
+
+# Strip Java null checks
+-assumenosideeffects class java.util.Objects {
+    public static ** requireNonNull(...);
+}

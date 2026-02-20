@@ -74,6 +74,10 @@ android {
         }
     }
 
+    androidResources {
+        localeFilters += "en"
+    }
+
     lint {
         abortOnError = true
         disable.addAll(listOf("PrivateApi", "DiscouragedPrivateApi"))
@@ -89,6 +93,13 @@ ktlint {
     version.set("1.8.0")
     android.set(true)
     ignoreFailures.set(false)
+}
+
+// Disable baseline/art profile tasks
+project.tasks.configureEach {
+    if (name.contains("ArtProfile", ignoreCase = true)) {
+        enabled = false
+    }
 }
 
 dependencies {

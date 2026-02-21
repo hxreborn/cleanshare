@@ -1,0 +1,3 @@
+- Fix auto-delete root detection for KernelSU/APatch
+- Reduce APK size from 21 MB to 2.5 MB
+- Enable build and configuration cache

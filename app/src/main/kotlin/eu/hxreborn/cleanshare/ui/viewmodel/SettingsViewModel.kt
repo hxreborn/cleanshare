@@ -8,10 +8,13 @@ import eu.hxreborn.cleanshare.prefs.Prefs
 import eu.hxreborn.cleanshare.prefs.PrefsRepository
 import eu.hxreborn.cleanshare.ui.state.SettingsUiState
 import eu.hxreborn.cleanshare.util.RootUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 abstract class SettingsViewModel : ViewModel() {
     abstract val uiState: StateFlow<SettingsUiState>
@@ -36,7 +39,13 @@ abstract class SettingsViewModel : ViewModel() {
 class SettingsViewModelImpl(
     private val prefsRepository: PrefsRepository,
 ) : SettingsViewModel() {
-    private val isRootAvailable = RootUtils.isRootAvailable()
+    private val rootAvailable = MutableStateFlow(false)
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            rootAvailable.value = RootUtils.isRootAvailable()
+        }
+    }
 
     override val uiState: StateFlow<SettingsUiState> =
         combine(
@@ -47,6 +56,7 @@ class SettingsViewModelImpl(
             prefsRepository.observeInt(Prefs.DELETION_DELAY_MS),
             prefsRepository.observeBoolean(Prefs.SHOW_DELETION_TOAST),
             prefsRepository.observeString(Prefs.SCREENSHOT_PATTERN),
+            rootAvailable,
         ) { values ->
             SettingsUiState.Ready(
                 hideDirectShare = values[0] as Boolean,
@@ -56,7 +66,7 @@ class SettingsViewModelImpl(
                 deletionDelayMs = values[4] as Int,
                 showDeletionToast = values[5] as Boolean,
                 screenshotPattern = values[6] as String,
-                isRootAvailable = isRootAvailable,
+                isRootAvailable = values[7] as Boolean,
             )
         }.stateIn(
             scope = viewModelScope,

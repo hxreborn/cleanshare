@@ -13,6 +13,9 @@ object RootUtils {
     private const val TAG = "CleanShare"
     private val handler = Handler(Looper.getMainLooper())
 
+    @Volatile
+    private var cachedRootAvailable: Boolean? = null
+
     private val ALLOWED_DIRS =
         listOf(
             "/storage/emulated/0/Pictures/Screenshots/",
@@ -22,12 +25,12 @@ object RootUtils {
         )
 
     fun isRootAvailable(): Boolean =
-        runCatching {
+        cachedRootAvailable ?: runCatching {
             Shell.getShell().isRoot
         }.getOrElse {
             Log.w(TAG, "Root check failed: ${it.message}")
             false
-        }
+        }.also { cachedRootAvailable = it }
 
     fun deleteFile(filePath: String): Boolean {
         val canonical =
@@ -49,7 +52,7 @@ object RootUtils {
     fun deleteMediaStoreEntry(uri: String): Boolean {
         if (!isRootAvailable()) return false
         return runCatching {
-            Shell.cmd("su 2000 -c \"content delete --uri '$uri'\"").exec().isSuccess
+            Shell.cmd("su 2000 -c \"content delete --uri ${shellQuote(uri)}\"").exec().isSuccess
         }.getOrElse {
             Log.w(TAG, "MediaStore delete failed: ${it.message}")
             false

@@ -1,6 +1,8 @@
 package eu.hxreborn.cleanshare
 
 import android.app.Application
+import com.topjohnwu.superuser.Shell
+import eu.hxreborn.cleanshare.BuildConfig
 import io.github.libxposed.service.XposedService
 import io.github.libxposed.service.XposedServiceHelper
 import java.util.concurrent.CopyOnWriteArrayList
@@ -25,6 +27,15 @@ class App : Application() {
     }
 
     companion object {
+        init {
+            Shell.enableVerboseLogging = BuildConfig.DEBUG
+            Shell.setDefaultBuilder(
+                Shell.Builder
+                    .create()
+                    .setTimeout(10),
+            )
+        }
+
         lateinit var instance: App
             private set
 

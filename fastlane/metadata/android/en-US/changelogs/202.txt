@@ -1,0 +1,3 @@
+- Fix Direct Share not being hidden due to silent null crash
+- Revert R8 rule that stripped null checks on platform types
+- Add execution logging to Direct Share hooks for diagnostics

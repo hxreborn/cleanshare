@@ -30,6 +30,16 @@
             android:authorities="eu.hxreborn.cleanshare.deletion"
             android:exported="true"
             tools:ignore="ExportedContentProvider" />
+
+        <!-- Remove unused AndroidX auto-registered components -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            tools:node="remove" />
+
+        <receiver
+            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+            tools:node="remove" />
     </application>
 
 </manifest>

@@ -10,7 +10,6 @@ import java.util.concurrent.CopyOnWriteArrayList
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
-        instance = this
         XposedServiceHelper.registerListener(
             object : XposedServiceHelper.OnServiceListener {
                 override fun onServiceBind(service: XposedService) {
@@ -35,9 +34,6 @@ class App : Application() {
                     .setTimeout(10),
             )
         }
-
-        lateinit var instance: App
-            private set
 
         var service: XposedService? = null
             private set

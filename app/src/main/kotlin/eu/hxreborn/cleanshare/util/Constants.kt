@@ -19,8 +19,6 @@ internal const val DELETION_PROVIDER_AUTHORITY = "eu.hxreborn.cleanshare.deletio
 
 internal const val CHECKBOX_VIEW_TAG = "cleanshare_checkbox"
 
-internal val SCREENSHOT_NAME_PATTERN = Regex("[Ss]creenshot[_-]\\d{8}[_-]\\d{6}.*")
-
 internal const val CHECKBOX_TEXT_SIZE_SP = 14f
 internal const val CHECKBOX_MARGIN_TOP_DP = 18
 internal const val CHECKBOX_INSERT_RETRY_DELAY_MS = 100L

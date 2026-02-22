@@ -16,7 +16,8 @@ class LowRamHooker : Hooker {
         fun before(callback: BeforeHookCallback) {
             val module = CleanShareModule.instance ?: return
             val prefs = module.getRemotePreferences(PREFS_FILE_NAME)
-            val enabled = prefs.getBoolean(PREF_KEY_HIDE_DIRECT_SHARE, true)
+            val enabled = prefs?.getBoolean(PREF_KEY_HIDE_DIRECT_SHARE, true) ?: true
+            module.log("[DirectShare] isLowRamDeviceStatic called, enabled=$enabled")
             if (enabled) {
                 callback.returnAndSkip(true)
             }
@@ -32,7 +33,8 @@ class ShareTargetsHooker : Hooker {
         fun before(callback: BeforeHookCallback) {
             val module = CleanShareModule.instance ?: return
             val prefs = module.getRemotePreferences(PREFS_FILE_NAME)
-            val enabled = prefs.getBoolean(PREF_KEY_HIDE_DIRECT_SHARE, true)
+            val enabled = prefs?.getBoolean(PREF_KEY_HIDE_DIRECT_SHARE, true) ?: true
+            module.log("[DirectShare] getShareTargets called, enabled=$enabled")
             if (enabled) {
                 callback.returnAndSkip(emptyList<Any>())
             }

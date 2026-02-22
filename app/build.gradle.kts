@@ -71,6 +71,14 @@ android {
     packaging {
         resources {
             pickFirsts += "META-INF/xposed/*"
+            excludes += setOf(
+                "META-INF/androidx/**",
+                "DebugProbesKt.bin",
+                "kotlin-tooling-metadata.json",
+                "META-INF/version-control-info.textproto",
+                "META-INF/*.version",
+                "kotlin/**",
+            )
         }
     }
 
@@ -113,7 +121,6 @@ dependencies {
     implementation(libs.compose.material.icons)
     implementation(libs.activity.compose)
     implementation(libs.lifecycle.runtime.compose)
-    implementation(libs.lifecycle.viewmodel.compose)
 
     implementation(libs.compose.preference)
     implementation(libs.aboutlibraries.core)

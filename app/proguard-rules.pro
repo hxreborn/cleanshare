@@ -1,9 +1,3 @@
-# LSPosed module entry point
--keep class eu.hxreborn.cleanshare.CleanShareModule { *; }
-
-# UI
--keep class eu.hxreborn.cleanshare.ui.MainActivity { *; }
-
 # Keep all @XposedHooker annotated classes
 -keep @io.github.libxposed.api.annotations.XposedHooker class * { *; }
 
@@ -49,8 +43,3 @@
 # Obfuscation
 -repackageclasses
 -allowaccessmodification
-
-# Strip Java null checks
--assumenosideeffects class java.util.Objects {
-    public static ** requireNonNull(...);
-}

@@ -1,3 +1,6 @@
+# LSPosed module entry point
+-keep class eu.hxreborn.cleanshare.CleanShareModule { *; }
+
 # Keep all @XposedHooker annotated classes
 -keep @io.github.libxposed.api.annotations.XposedHooker class * { *; }
 

@@ -41,6 +41,7 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            isProfileable = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -71,15 +72,6 @@ android {
     packaging {
         resources {
             pickFirsts += "META-INF/xposed/*"
-            excludes +=
-                setOf(
-                    "META-INF/androidx/**",
-                    "DebugProbesKt.bin",
-                    "kotlin-tooling-metadata.json",
-                    "META-INF/version-control-info.textproto",
-                    "META-INF/*.version",
-                    "kotlin/**",
-                )
         }
     }
 
@@ -104,13 +96,6 @@ ktlint {
     ignoreFailures.set(false)
 }
 
-// Disable baseline/art profile tasks
-project.tasks.configureEach {
-    if (name.contains("ArtProfile", ignoreCase = true)) {
-        enabled = false
-    }
-}
-
 dependencies {
     compileOnly(libs.libxposed.api)
     implementation(libs.libxposed.service)
@@ -122,6 +107,7 @@ dependencies {
     implementation(libs.compose.material.icons)
     implementation(libs.activity.compose)
     implementation(libs.lifecycle.runtime.compose)
+    implementation(libs.lifecycle.viewmodel.compose)
 
     implementation(libs.compose.preference)
     implementation(libs.aboutlibraries.core)

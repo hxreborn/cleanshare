@@ -1,0 +1,2 @@
+- Fix Direct Share not hidden in release builds due to missing R8 keep rule
+- Add release APK artifact to CI workflow

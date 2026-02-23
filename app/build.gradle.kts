@@ -15,8 +15,8 @@ android {
         applicationId = "eu.hxreborn.cleanshare"
         minSdk = 30
         targetSdk = 36
-        versionCode = 202
-        versionName = "2.0.2"
+        versionCode = 203
+        versionName = "2.0.3"
     }
 
     signingConfigs {
@@ -71,14 +71,15 @@ android {
     packaging {
         resources {
             pickFirsts += "META-INF/xposed/*"
-            excludes += setOf(
-                "META-INF/androidx/**",
-                "DebugProbesKt.bin",
-                "kotlin-tooling-metadata.json",
-                "META-INF/version-control-info.textproto",
-                "META-INF/*.version",
-                "kotlin/**",
-            )
+            excludes +=
+                setOf(
+                    "META-INF/androidx/**",
+                    "DebugProbesKt.bin",
+                    "kotlin-tooling-metadata.json",
+                    "META-INF/version-control-info.textproto",
+                    "META-INF/*.version",
+                    "kotlin/**",
+                )
         }
     }
 

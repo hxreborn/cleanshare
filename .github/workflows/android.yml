@@ -33,7 +33,18 @@ jobs:
       - name: Build libxposed to mavenLocal
         run: ./gradlew buildLibxposed
 
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
+
       - name: Build
+        env:
+          RELEASE_STORE_FILE: ${{ github.workspace }}/release.keystore
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: ./gradlew assembleDebug assembleRelease
 
       - name: Upload debug APK
@@ -49,3 +60,7 @@ jobs:
           name: release-apk
           path: app/build/outputs/apk/release/app-release.apk
           retention-days: 7
+
+      - name: Clean up keystore
+        if: always()
+        run: rm -f release.keystore

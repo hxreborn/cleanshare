@@ -126,6 +126,7 @@ internal fun getScreenshotInfo(
                 MediaStore.Images.Media.DATA,
                 MediaStore.Images.Media.SIZE,
                 MediaStore.Images.Media.IS_PENDING,
+                MediaStore.Images.Media.IS_TRASHED,
             )
         activity.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
             if (cursor.moveToFirst()) {
@@ -139,6 +140,12 @@ internal fun getScreenshotInfo(
                 val isPendingIdx = cursor.getColumnIndex(MediaStore.Images.Media.IS_PENDING)
                 if (isPendingIdx >= 0 && cursor.getInt(isPendingIdx) == 1) {
                     debugLog { "Skipping pending file: $name" }
+                    return null
+                }
+
+                val isTrashedIdx = cursor.getColumnIndex(MediaStore.Images.Media.IS_TRASHED)
+                if (isTrashedIdx >= 0 && cursor.getInt(isTrashedIdx) == 1) {
+                    debugLog { "Skipping trashed file: $name" }
                     return null
                 }
 

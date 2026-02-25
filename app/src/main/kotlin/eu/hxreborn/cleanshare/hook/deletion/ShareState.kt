@@ -23,6 +23,10 @@ data class ShareSession(
 object ShareState {
     private val currentSession = AtomicReference<ShareSession?>(null)
 
+    fun clear() {
+        currentSession.set(null)
+    }
+
     fun set(
         uri: Uri,
         filename: String,

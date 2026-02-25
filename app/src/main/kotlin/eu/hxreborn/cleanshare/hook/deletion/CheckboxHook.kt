@@ -29,6 +29,7 @@ class CheckboxHook : Hooker {
         @SuppressLint("NewApi")
         fun after(callback: AfterHookCallback) {
             debugLog { "onCreate hook fired" }
+            ShareState.clear()
             val activity = callback.thisObject as? Activity ?: return
             val rawIntent = activity.intent ?: return
             debugLog { "rawIntent action=${rawIntent.action}" }

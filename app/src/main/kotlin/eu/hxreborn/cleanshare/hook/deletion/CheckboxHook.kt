@@ -36,7 +36,6 @@ class CheckboxHook : Hooker {
 
             val shareIntent = extractShareIntent(rawIntent) ?: return
             val uri = extractImageUri(shareIntent) ?: return
-            val screenshotInfo = getScreenshotInfo(activity, uri) ?: return
 
             val remotePrefs =
                 runCatching {
@@ -53,12 +52,38 @@ class CheckboxHook : Hooker {
                 ) ?: DeletionMode.ASK_EACH_TIME.key
             val mode = DeletionMode.fromKey(modeKey)
 
+            // Sync path: original file (MediaStore / SystemUI)
+            val screenshotInfo = getScreenshotInfo(activity, uri)
+            if (screenshotInfo != null) {
+                val targetUri = screenshotInfo.resolvedUri ?: uri
+                applyDeletionMode(activity, mode, targetUri, screenshotInfo)
+                return
+            }
+
+            // Async path: editor share -> resolve original via IPC
+            if (!isOriginalFileUri(uri)) {
+                Thread {
+                    val resolved = resolveOriginalScreenshot(activity) ?: return@Thread
+                    val targetUri = resolved.resolvedUri ?: uri
+                    activity.runOnUiThread {
+                        applyDeletionMode(activity, mode, targetUri, resolved)
+                    }
+                }.start()
+            }
+        }
+
+        private fun applyDeletionMode(
+            activity: Activity,
+            mode: DeletionMode,
+            uri: Uri,
+            info: ScreenshotInfo,
+        ) {
             when (mode) {
                 DeletionMode.ALWAYS -> {
                     ShareState.set(
                         uri,
-                        screenshotInfo.filename,
-                        screenshotInfo.filePath,
+                        info.filename,
+                        info.filePath,
                         shouldDelete = true,
                         activity,
                     )
@@ -66,7 +91,7 @@ class CheckboxHook : Hooker {
 
                 DeletionMode.ASK_EACH_TIME -> {
                     activity.window.decorView.post {
-                        insertCheckbox(activity, uri, screenshotInfo)
+                        insertCheckbox(activity, uri, info)
                     }
                 }
             }
@@ -81,10 +106,12 @@ class CheckboxHook : Hooker {
                 val localPrefs =
                     activity.getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE)
                 val checked = localPrefs.getBoolean(PREF_KEY_DELETE_AFTER_SHARE, false)
+                val isResolved = screenshotInfo.resolvedUri != null
+                val label = if (isResolved) "Delete original screenshot" else "Delete after sharing"
 
                 val checkBox =
                     CheckBox(activity).apply {
-                        text = "Delete after sharing"
+                        text = label
                         tag = CHECKBOX_VIEW_TAG
                         textSize = CHECKBOX_TEXT_SIZE_SP
                         isChecked = checked

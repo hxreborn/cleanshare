@@ -31,6 +31,12 @@
             android:exported="true"
             tools:ignore="ExportedContentProvider" />
 
+        <provider
+            android:name=".deletion.ScreenshotQueryProvider"
+            android:authorities="eu.hxreborn.cleanshare.query"
+            android:exported="true"
+            tools:ignore="ExportedContentProvider" />
+
         <!-- Remove unused AndroidX auto-registered components -->
         <provider
             android:name="androidx.startup.InitializationProvider"

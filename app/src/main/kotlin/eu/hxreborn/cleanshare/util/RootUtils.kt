@@ -47,8 +47,8 @@ object RootUtils {
         }
     }
 
-    // Run content delete as shell user (UID 2000), not root (UID 0)
-    // MediaProvider rejects UID 0 with "no associated package"
+    // Run content commands as shell user (UID 2000), not root (UID 0).
+    // MediaProvider rejects UID 0 with "no associated package".
     fun deleteMediaStoreEntry(uri: String): Boolean {
         if (!isRootAvailable()) return false
         return runCatching {
@@ -56,6 +56,24 @@ object RootUtils {
         }.getOrElse {
             Log.w(TAG, "MediaStore delete failed: ${it.message}")
             false
+        }
+    }
+
+    fun queryRecentScreenshots(whereSql: String): List<String> {
+        if (!isRootAvailable()) return emptyList()
+        return runCatching {
+            val result =
+                Shell
+                    .cmd(
+                        "su 2000 -c \"content query --uri content://media/external/images/media" +
+                            " --projection _id:_display_name:_data" +
+                            " --where ${shellQuote(whereSql)}" +
+                            " --sort ${shellQuote("date_added DESC")}\"",
+                    ).exec()
+            if (result.isSuccess) result.out else emptyList()
+        }.getOrElse {
+            Log.w(TAG, "MediaStore query failed: ${it.message}")
+            emptyList()
         }
     }
 

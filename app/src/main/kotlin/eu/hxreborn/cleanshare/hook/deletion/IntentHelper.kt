@@ -1,20 +1,24 @@
 package eu.hxreborn.cleanshare.hook.deletion
 
 import android.app.Activity
+import android.content.ContentUris
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.os.Parcelable
 import android.provider.MediaStore
 import eu.hxreborn.cleanshare.CleanShareModule
 import eu.hxreborn.cleanshare.util.DEFAULT_SCREENSHOT_PATTERN
 import eu.hxreborn.cleanshare.util.PREFS_FILE_NAME
 import eu.hxreborn.cleanshare.util.PREF_KEY_SCREENSHOT_PATTERN
+import eu.hxreborn.cleanshare.util.QUERY_PROVIDER_AUTHORITY
 import eu.hxreborn.cleanshare.util.debugLog
 
 internal data class ScreenshotInfo(
     val filename: String,
     val filePath: String?,
+    val resolvedUri: Uri? = null,
 )
 
 // Typed overload is API 33+
@@ -57,7 +61,7 @@ internal fun extractImageUri(intent: Intent): Uri? {
     return uri
 }
 
-// Authorities that represent original media files (not temp/edited copies)
+// Original media file authorities
 private val ORIGINAL_FILE_AUTHORITIES =
     setOf(
         "media",
@@ -65,13 +69,13 @@ private val ORIGINAL_FILE_AUTHORITIES =
         "com.android.providers.media.documents",
     )
 
-// Screenshot FileProvider authorities (notification share)
+// SystemUI notification share
 private val SCREENSHOT_FILE_PROVIDERS =
     setOf(
         "com.android.systemui.fileprovider",
     )
 
-// Path patterns indicating temp/edited files
+// Temp/edited file indicators
 private val TEMP_PATH_PATTERNS =
     listOf("/cache/", "/temp/", "edited", ".pending")
 
@@ -88,10 +92,8 @@ private fun getScreenshotPattern(): Regex =
 internal fun isOriginalFileUri(uri: Uri): Boolean {
     val authority = uri.authority ?: return false
 
-    // Accept known screenshot FileProviders (notification share)
     if (authority in SCREENSHOT_FILE_PROVIDERS) return true
 
-    // Accept MediaStore authorities (gallery share)
     if (authority !in ORIGINAL_FILE_AUTHORITIES) {
         debugLog { "Skipping non-media authority: $authority" }
         return false
@@ -134,14 +136,12 @@ internal fun getScreenshotInfo(
                     "getScreenshotInfo: relativePath=$relativePath name=$name filePath=$filePath"
                 }
 
-                // Skip files still being written (IS_PENDING = 1)
                 val isPendingIdx = cursor.getColumnIndex(MediaStore.Images.Media.IS_PENDING)
                 if (isPendingIdx >= 0 && cursor.getInt(isPendingIdx) == 1) {
                     debugLog { "Skipping pending file: $name" }
                     return null
                 }
 
-                // Skip zero-size files
                 val sizeIdx = cursor.getColumnIndex(MediaStore.Images.Media.SIZE)
                 if (sizeIdx >= 0 && cursor.getLong(sizeIdx) == 0L) {
                     debugLog { "Skipping zero-size file: $name" }
@@ -162,6 +162,68 @@ internal fun getScreenshotInfo(
     debugLog { "isScreenshot=false" }
     return null
 }
+
+// Cover slow editor flows (crop → annotate → share)
+private const val RECENCY_WINDOW_SECONDS = 15 * 60
+
+// Resolve original screenshot via IPC — IntentResolver lacks media permissions
+internal fun resolveOriginalScreenshot(activity: Activity): ScreenshotInfo? {
+    runCatching {
+        val cutoff = System.currentTimeMillis() / 1000 - RECENCY_WINDOW_SECONDS
+        val screenshotPattern = getScreenshotPattern()
+
+        val where = "relative_path LIKE '%Screenshots%' AND date_added > $cutoff AND is_trashed = 0"
+        val extras = Bundle().apply { putString("where", where) }
+
+        val result =
+            activity.contentResolver.call(
+                Uri.parse("content://$QUERY_PROVIDER_AUTHORITY"),
+                "resolve_screenshot",
+                null,
+                extras,
+            )
+        val lines = result?.getStringArray("lines") ?: return null
+
+        for (line in lines) {
+            // Row format: "Row: N _id=123, _display_name=foo.png, _data=/path"
+            val id =
+                ROW_ID_PATTERN
+                    .find(line)
+                    ?.groupValues
+                    ?.get(1)
+                    ?.toLongOrNull() ?: continue
+            val name =
+                ROW_NAME_PATTERN
+                    .find(line)
+                    ?.groupValues
+                    ?.get(1)
+                    .orEmpty()
+            val filePath = ROW_DATA_PATTERN.find(line)?.groupValues?.get(1)
+
+            if (!name.matches(screenshotPattern)) {
+                debugLog { "resolveOriginalScreenshot: candidate name=$name (pattern miss)" }
+                continue
+            }
+
+            val resolvedUri =
+                ContentUris.withAppendedId(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    id,
+                )
+            debugLog {
+                "resolveOriginalScreenshot: matched name=$name filePath=$filePath resolvedUri=$resolvedUri"
+            }
+            return ScreenshotInfo(filename = name, filePath = filePath, resolvedUri = resolvedUri)
+        }
+    }.onFailure { debugLog(it) { "resolveOriginalScreenshot failed" } }
+
+    debugLog { "resolveOriginalScreenshot: no recent screenshot found" }
+    return null
+}
+
+private val ROW_ID_PATTERN = Regex("""_id=(\d+)""")
+private val ROW_NAME_PATTERN = Regex("""_display_name=([^,]+)""")
+private val ROW_DATA_PATTERN = Regex("""_data=([^,]+)""")
 
 private fun getScreenshotInfoFromFileProvider(uri: Uri): ScreenshotInfo? {
     val filename = uri.lastPathSegment ?: return null

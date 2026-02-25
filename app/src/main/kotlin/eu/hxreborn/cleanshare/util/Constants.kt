@@ -16,6 +16,7 @@ internal const val DEFAULT_SCREENSHOT_PATTERN = "[Ss]creenshot[_-]\\d{8}[_-]\\d{
 internal const val QUICK_SHARE_ACTIVITY = "com.google.android.gms.nearby.sharing.main.MainActivity"
 
 internal const val DELETION_PROVIDER_AUTHORITY = "eu.hxreborn.cleanshare.deletion"
+internal const val QUERY_PROVIDER_AUTHORITY = "eu.hxreborn.cleanshare.query"
 
 internal const val CHECKBOX_VIEW_TAG = "cleanshare_checkbox"
 

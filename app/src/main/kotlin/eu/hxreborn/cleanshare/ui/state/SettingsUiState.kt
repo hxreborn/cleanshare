@@ -1,5 +1,6 @@
 package eu.hxreborn.cleanshare.ui.state
 
+import eu.hxreborn.cleanshare.prefs.DeletionAction
 import eu.hxreborn.cleanshare.prefs.DeletionMode
 
 sealed interface SettingsUiState {
@@ -10,6 +11,7 @@ sealed interface SettingsUiState {
         val hideQuickShare: Boolean,
         val deletionEnabled: Boolean,
         val deletionMode: DeletionMode,
+        val deletionAction: DeletionAction,
         val deletionDelayMs: Int,
         val showDeletionToast: Boolean,
         val screenshotPattern: String,

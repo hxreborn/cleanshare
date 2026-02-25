@@ -21,6 +21,9 @@
     <string name="pref_deletion_mode_title">Deletion Mode</string>
     <string name="pref_deletion_mode_summary_ask">Adds a \"Delete after sharing\" checkbox to the share sheet. Remembers your last choice.</string>
     <string name="pref_deletion_mode_summary_always">Automatically deletes the screenshot in the background without showing a checkbox.</string>
+    <string name="pref_deletion_action_title">Deletion Action</string>
+    <string name="pref_deletion_action_summary_delete">Permanently removes the file. Cannot be recovered</string>
+    <string name="pref_deletion_action_summary_trash">Moves the file to trash. Android keeps it for 30 days before removing it</string>
     <string name="pref_deletion_delay_title">Deletion Delay</string>
     <string name="pref_deletion_delay_summary">Waits %d seconds before deleting, ensuring the target app has time to process the image.</string>
     <string name="pref_show_toast_title">Show Toast</string>

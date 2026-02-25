@@ -5,7 +5,9 @@ import android.content.SharedPreferences
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import eu.hxreborn.cleanshare.prefs.DeletionAction
 import eu.hxreborn.cleanshare.util.PREFS_FILE_NAME
+import eu.hxreborn.cleanshare.util.PREF_KEY_DELETION_ACTION
 import eu.hxreborn.cleanshare.util.PREF_KEY_SHOW_DELETION_TOAST
 import eu.hxreborn.cleanshare.util.RootUtils
 
@@ -26,14 +28,6 @@ internal class DeletionExecutor(
         queue.updateStatus(request.id, RequestStatus.EXECUTING)
         Log.d(TAG, "Executing deletion: ${request.id}")
 
-        val filePath = request.filePath
-        if (filePath == null) {
-            Log.d(TAG, "Deletion failed: no file path for ${request.id}")
-            queue.updateStatus(request.id, RequestStatus.FAILED)
-            showToast("Failed to delete: ${request.filename}")
-            return
-        }
-
         if (!RootUtils.isRootAvailable()) {
             Log.d(TAG, "Deletion failed: root not available for ${request.id}")
             queue.updateStatus(request.id, RequestStatus.FAILED)
@@ -41,6 +35,45 @@ internal class DeletionExecutor(
             return
         }
 
+        val actionKey =
+            prefs.getString(PREF_KEY_DELETION_ACTION, DeletionAction.DELETE.key)
+                ?: DeletionAction.DELETE.key
+        val action = DeletionAction.fromKey(actionKey)
+
+        when (action) {
+            DeletionAction.TRASH -> {
+                executeTrash(request)
+            }
+
+            DeletionAction.DELETE -> {
+                val filePath = request.filePath
+                if (filePath == null) {
+                    Log.d(TAG, "Deletion failed: no file path for ${request.id}")
+                    queue.updateStatus(request.id, RequestStatus.FAILED)
+                    showToast("Failed to delete: ${request.filename}")
+                    return
+                }
+                executeDelete(request, filePath)
+            }
+        }
+    }
+
+    private fun executeTrash(request: DeletionRequest) {
+        val trashed = RootUtils.trashMediaStoreEntry(request.uri)
+        if (trashed) {
+            queue.updateStatus(request.id, RequestStatus.COMPLETED)
+            showToast("Trashed: ${request.filename}")
+        } else {
+            Log.d(TAG, "Trash failed for ${request.id}")
+            queue.updateStatus(request.id, RequestStatus.FAILED)
+            showToast("Failed to trash: ${request.filename}")
+        }
+    }
+
+    private fun executeDelete(
+        request: DeletionRequest,
+        filePath: String,
+    ) {
         // Delete MediaStore entry first (via root), then physical file
         // This prevents Google Photos from showing black tiles
         val mediaStoreDeleted = RootUtils.deleteMediaStoreEntry(request.uri)

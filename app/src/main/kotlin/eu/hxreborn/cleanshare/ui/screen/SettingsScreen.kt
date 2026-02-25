@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.SpeakerNotes
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.FolderDelete
 import androidx.compose.material.icons.outlined.Gavel
 import androidx.compose.material.icons.outlined.NearbyOff
 import androidx.compose.material.icons.outlined.TextFields
@@ -62,6 +63,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import eu.hxreborn.cleanshare.BuildConfig
 import eu.hxreborn.cleanshare.R
+import eu.hxreborn.cleanshare.prefs.DeletionAction
 import eu.hxreborn.cleanshare.prefs.DeletionMode
 import eu.hxreborn.cleanshare.ui.state.SettingsUiState
 import eu.hxreborn.cleanshare.ui.theme.Tokens
@@ -133,6 +135,7 @@ fun SettingsScreen(
                     onHideQuickShareChange = viewModel::setHideQuickShare,
                     onDeletionEnabledChange = viewModel::setDeletionEnabled,
                     onDeletionModeChange = viewModel::setDeletionMode,
+                    onDeletionActionChange = viewModel::setDeletionAction,
                     onDeletionDelayChange = viewModel::setDeletionDelayMs,
                     onShowDeletionToastChange = viewModel::setShowDeletionToast,
                     onScreenshotPatternChange = viewModel::setScreenshotPattern,
@@ -151,6 +154,7 @@ private fun SettingsContent(
     onHideQuickShareChange: (Boolean) -> Unit,
     onDeletionEnabledChange: (Boolean) -> Unit,
     onDeletionModeChange: (DeletionMode) -> Unit,
+    onDeletionActionChange: (DeletionAction) -> Unit,
     onDeletionDelayChange: (Int) -> Unit,
     onShowDeletionToastChange: (Boolean) -> Unit,
     onScreenshotPatternChange: (String) -> Unit,
@@ -256,7 +260,7 @@ private fun SettingsContent(
                 title = { Text(stringResource(R.string.pref_category_deletion)) },
             )
 
-            val deletionItemCount = if (state.deletionEnabled) 5 else 1
+            val deletionItemCount = if (state.deletionEnabled) 6 else 1
 
             val deletionEnabledShape = shapeForPosition(deletionItemCount, 0)
             switchPreference(
@@ -316,7 +320,27 @@ private fun SettingsContent(
 
                 item { Spacer(Modifier.height(2.dp)) }
 
-                val delayShape = shapeForPosition(deletionItemCount, 2)
+                val actionShape = shapeForPosition(deletionItemCount, 2)
+                item(key = "deletion_action") {
+                    SegmentedPreferenceItem(
+                        icon = Icons.Outlined.FolderDelete,
+                        title = stringResource(R.string.pref_deletion_action_title),
+                        summary = stringResource(state.deletionAction.summaryRes),
+                        options = DeletionAction.entries,
+                        selected = state.deletionAction,
+                        label = { it.displayName },
+                        onSelected = onDeletionActionChange,
+                        modifier =
+                            Modifier
+                                .padding(horizontal = 8.dp)
+                                .background(color = surface, shape = actionShape)
+                                .clip(actionShape),
+                    )
+                }
+
+                item { Spacer(Modifier.height(2.dp)) }
+
+                val delayShape = shapeForPosition(deletionItemCount, 3)
                 item(key = "deletion_delay") {
                     DeletionDelayItem(
                         delayMs = state.deletionDelayMs,
@@ -331,7 +355,7 @@ private fun SettingsContent(
 
                 item { Spacer(Modifier.height(2.dp)) }
 
-                val toastShape = shapeForPosition(deletionItemCount, 3)
+                val toastShape = shapeForPosition(deletionItemCount, 4)
                 switchPreference(
                     modifier =
                         Modifier
@@ -360,7 +384,7 @@ private fun SettingsContent(
 
                 item { Spacer(Modifier.height(2.dp)) }
 
-                val patternShape = shapeForPosition(deletionItemCount, 4)
+                val patternShape = shapeForPosition(deletionItemCount, 5)
                 preference(
                     modifier =
                         Modifier

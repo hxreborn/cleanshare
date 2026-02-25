@@ -3,6 +3,7 @@ package eu.hxreborn.cleanshare.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import eu.hxreborn.cleanshare.prefs.DeletionAction
 import eu.hxreborn.cleanshare.prefs.DeletionMode
 import eu.hxreborn.cleanshare.prefs.Prefs
 import eu.hxreborn.cleanshare.prefs.PrefsRepository
@@ -26,6 +27,8 @@ abstract class SettingsViewModel : ViewModel() {
     abstract fun setDeletionEnabled(enabled: Boolean)
 
     abstract fun setDeletionMode(mode: DeletionMode)
+
+    abstract fun setDeletionAction(action: DeletionAction)
 
     abstract fun setDeletionDelayMs(delayMs: Int)
 
@@ -53,6 +56,7 @@ class SettingsViewModelImpl(
             prefsRepository.observeBoolean(Prefs.HIDE_QUICK_SHARE),
             prefsRepository.observeBoolean(Prefs.DELETION_ENABLED),
             prefsRepository.observeEnum(Prefs.DELETION_MODE),
+            prefsRepository.observeEnum(Prefs.DELETION_ACTION),
             prefsRepository.observeInt(Prefs.DELETION_DELAY_MS),
             prefsRepository.observeBoolean(Prefs.SHOW_DELETION_TOAST),
             prefsRepository.observeString(Prefs.SCREENSHOT_PATTERN),
@@ -63,10 +67,11 @@ class SettingsViewModelImpl(
                 hideQuickShare = values[1] as Boolean,
                 deletionEnabled = values[2] as Boolean,
                 deletionMode = values[3] as DeletionMode,
-                deletionDelayMs = values[4] as Int,
-                showDeletionToast = values[5] as Boolean,
-                screenshotPattern = values[6] as String,
-                isRootAvailable = values[7] as Boolean,
+                deletionAction = values[4] as DeletionAction,
+                deletionDelayMs = values[5] as Int,
+                showDeletionToast = values[6] as Boolean,
+                screenshotPattern = values[7] as String,
+                isRootAvailable = values[8] as Boolean,
             )
         }.stateIn(
             scope = viewModelScope,
@@ -88,6 +93,10 @@ class SettingsViewModelImpl(
 
     override fun setDeletionMode(mode: DeletionMode) {
         prefsRepository.setEnum(Prefs.DELETION_MODE, mode)
+    }
+
+    override fun setDeletionAction(action: DeletionAction) {
+        prefsRepository.setEnum(Prefs.DELETION_ACTION, action)
     }
 
     override fun setDeletionDelayMs(delayMs: Int) {

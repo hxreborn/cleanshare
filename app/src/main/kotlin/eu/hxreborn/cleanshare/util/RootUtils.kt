@@ -59,6 +59,20 @@ object RootUtils {
         }
     }
 
+    fun trashMediaStoreEntry(uri: String): Boolean {
+        if (!isRootAvailable()) return false
+        return runCatching {
+            Shell
+                .cmd(
+                    "su 2000 -c \"content update --uri ${shellQuote(uri)} --bind is_trashed:i:1\"",
+                ).exec()
+                .isSuccess
+        }.getOrElse {
+            Log.w(TAG, "MediaStore trash failed: ${it.message}")
+            false
+        }
+    }
+
     fun queryRecentScreenshots(whereSql: String): List<String> {
         if (!isRootAvailable()) return emptyList()
         return runCatching {

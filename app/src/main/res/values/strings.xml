@@ -19,7 +19,6 @@
     <string name="pref_deletion_enabled_summary">Removes screenshots from your device after sharing</string>
     <string name="pref_deletion_requires_root">Root access is required for screenshot deletion.</string>
     <string name="pref_deletion_mode_title">Deletion Mode</string>
-    <string name="pref_deletion_mode_dialog_title">Deletion Mode</string>
     <string name="pref_deletion_mode_summary_ask">Adds a \"Delete after sharing\" checkbox to the share sheet. Remembers your last choice.</string>
     <string name="pref_deletion_mode_summary_always">Automatically deletes the screenshot in the background without showing a checkbox.</string>
     <string name="pref_deletion_delay_title">Deletion Delay</string>

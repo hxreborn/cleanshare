@@ -13,9 +13,9 @@ import eu.hxreborn.cleanshare.util.debugLog
 
 internal object CheckboxInserter {
     // Tries insertion strategies in order of preference:
-    // 1. Preview content area (A11+) — centered below image preview / action row
-    // 2. Headline row (A15+) — right-aligned inline with headline text
-    // 3. Below header (A11+) — centered below chooser_header as last resort
+    // 1. Preview content area (A11+), centered below image preview / action row
+    // 2. Headline row (A15+), right-aligned inline with headline text
+    // 3. Below header (A11+), centered below chooser_header as last resort
     fun insert(
         activity: Activity,
         view: View,

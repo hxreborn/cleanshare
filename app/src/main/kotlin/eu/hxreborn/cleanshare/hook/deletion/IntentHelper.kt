@@ -173,7 +173,7 @@ internal fun getScreenshotInfo(
 // Cover slow editor flows (crop → annotate → share)
 private const val RECENCY_WINDOW_SECONDS = 15 * 60
 
-// Resolve original screenshot via IPC — IntentResolver lacks media permissions
+// Resolve original screenshot via IPC since IntentResolver lacks media permissions
 internal fun resolveOriginalScreenshot(activity: Activity): ScreenshotInfo? {
     runCatching {
         val cutoff = System.currentTimeMillis() / 1000 - RECENCY_WINDOW_SECONDS

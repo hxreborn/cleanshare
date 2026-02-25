@@ -17,19 +17,19 @@
     <!-- Deletion prefs -->
     <string name="pref_deletion_enabled_title">Delete Shared Screenshots</string>
     <string name="pref_deletion_enabled_summary">Removes screenshots from your device after sharing</string>
-    <string name="pref_deletion_requires_root">Root access is required for screenshot deletion.</string>
+    <string name="pref_deletion_requires_root">Root access is required for screenshot deletion</string>
     <string name="pref_deletion_mode_title">Deletion Mode</string>
-    <string name="pref_deletion_mode_summary_ask">Adds a \"Delete after sharing\" checkbox to the share sheet. Remembers your last choice.</string>
-    <string name="pref_deletion_mode_summary_always">Automatically deletes the screenshot in the background without showing a checkbox.</string>
+    <string name="pref_deletion_mode_summary_ask">Adds a \"Delete after sharing\" checkbox to the share sheet. Remembers your last choice</string>
+    <string name="pref_deletion_mode_summary_always">Automatically deletes the screenshot in the background without showing a checkbox</string>
     <string name="pref_deletion_action_title">Deletion Action</string>
     <string name="pref_deletion_action_summary_delete">Permanently removes the file. Cannot be recovered</string>
     <string name="pref_deletion_action_summary_trash">Moves the file to trash. Android keeps it for 30 days before removing it</string>
     <string name="pref_deletion_delay_title">Deletion Delay</string>
-    <string name="pref_deletion_delay_summary">Waits %d seconds before deleting, ensuring the target app has time to process the image.</string>
+    <string name="pref_deletion_delay_summary">Waits %d seconds before deleting, ensuring the target app has time to process the image</string>
     <string name="pref_show_toast_title">Show Toast</string>
     <string name="pref_show_toast_summary">Shows a brief notification after each deletion</string>
     <string name="pref_screenshot_pattern_title">Filename Pattern</string>
-    <string name="pref_screenshot_pattern_summary">Advanced: Custom regex pattern to identify screenshot files.</string>
+    <string name="pref_screenshot_pattern_summary">Advanced: Custom regex pattern to identify screenshot files</string>
 
     <!-- About prefs -->
     <string name="pref_version_title">App version</string>
@@ -44,7 +44,7 @@
     <string name="pref_version_easter_egg">v%1$s (%2$d) – %3$s build</string>
 
     <!-- Regex dialog -->
-    <string name="regex_dialog_hint">Must be a valid regular expression. Only one pattern at a time is supported.</string>
+    <string name="regex_dialog_hint">Must be a valid regular expression. Only one pattern at a time is supported</string>
     <string name="regex_dialog_example">Example: Screenshot_20260218_172900.png</string>
     <string name="regex_dialog_learn_more">Learn more</string>
     <string name="regex_dialog_invalid_pattern">Invalid pattern</string>

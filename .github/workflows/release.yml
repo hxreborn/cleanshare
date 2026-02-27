@@ -56,17 +56,18 @@ jobs:
 
       - name: Generate Changelog
         id: changelog
-        continue-on-error: true
-        uses: requarks/changelog-action@v1
+        uses: orhun/git-cliff-action@v4
         with:
-          token: ${{ github.token }}
-          tag: ${{ github.ref_name }}
-          writeToFile: true
+          config: .github/cliff.toml
+          args: --latest --strip header
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPO: ${{ github.repository }}
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          body: ${{ steps.changelog.outputs.changes || format('Release {0}', github.ref_name) }}
+          body: ${{ steps.changelog.outputs.content || format('Release {0}', github.ref_name) }}
           files: app/build/outputs/apk/release/app-release.apk
 
       - name: Mirror to Xposed-Modules-Repo
@@ -74,7 +75,7 @@ jobs:
         with:
           repository: Xposed-Modules-Repo/eu.hxreborn.cleanshare
           token: ${{ secrets.XPOSED_REPO_PAT }}
-          body: ${{ steps.changelog.outputs.changes || format('Release {0}', github.ref_name) }}
+          body: ${{ steps.changelog.outputs.content || format('Release {0}', github.ref_name) }}
           files: app/build/outputs/apk/release/app-release.apk
           fail_on_unmatched_files: true
           make_latest: true

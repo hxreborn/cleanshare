@@ -1,0 +1,96 @@
+# git-cliff ~ configuration file
+# https://git-cliff.org/docs/configuration
+
+[remote.github]
+owner = "hxreborn"
+repo = "cleanshare"
+
+[changelog]
+header = ""
+body = """
+{%- macro remote_url() -%}
+https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}
+{%- endmacro -%}
+
+{%- macro commit(commit) -%}
+- [`{{ commit.id | truncate(length=7, end="") }}`]({{ self::remote_url() }}/commit/{{ commit.id }}) - \
+  {% if commit.scope %}*({{ commit.scope }})* {% endif %}\
+  {{ commit.message | upper_first | trim }}\
+  {% if commit.breaking %} [**breaking**]{% endif %}\
+  {% if commit.remote.username %} by @{{ commit.remote.username }}\
+  {%- if commit.remote.pr_number %} in [#{{ commit.remote.pr_number }}]({{ self::remote_url() }}/pull/{{ commit.remote.pr_number }}){% endif %}{% endif %}
+{%- if commit.body %}
+
+{{ commit.body | indent(prefix="  ", first=true, blank=true) }}
+{%- endif %}
+{%- for footer in commit.footers %}
+{%- if footer.token != "Signed-off-by" and footer.token != "Co-authored-by" %}
+
+  > {{ footer.token }}{{ footer.separator }}{{ footer.value }}
+{%- endif %}
+{%- endfor %}
+{% endmacro -%}
+
+## What's Changed
+
+{% if commits | length == 0 -%}
+No user-facing changes in this release.
+{%- else %}
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim | upper_first }}
+{% for commit in commits | filter(attribute="scope") | sort(attribute="scope") %}
+{{ self::commit(commit=commit) }}
+{%- endfor -%}
+{% for commit in commits %}
+{%- if not commit.scope %}
+{{ self::commit(commit=commit) }}
+{%- endif -%}
+{%- endfor %}
+{% endfor %}
+{%- endif %}
+
+{%- if github.contributors | filter(attribute="is_first_time", value=true) | length != 0 %}
+### New Contributors
+{% for contributor in github.contributors | filter(attribute="is_first_time", value=true) %}
+* @{{ contributor.username }} made their first contribution\
+{%- if contributor.pr_number %} in [#{{ contributor.pr_number }}]({{ self::remote_url() }}/pull/{{ contributor.pr_number }}){% endif %}
+{% endfor %}
+{%- endif %}
+"""
+footer = ""
+trim = false
+postprocessors = [
+  { pattern = ' +\n', replace = "\n" },
+]
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+commit_preprocessors = [
+  { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "" },
+]
+commit_parsers = [
+  { message = "^feat", group = "<!-- 00 -->🚀 Added" },
+  { message = "^[fF]ix", group = "<!-- 01 -->🐛 Fixed" },
+  { message = "^perf", group = "<!-- 02 -->⚡ Performance Improvements" },
+  { body = ".*[Ss]ecurity", group = "<!-- 03 -->🔒 Security" },
+  { message = "^refactor", group = "<!-- 04 -->♻️ Changed" },
+  { message = "^revert", group = "<!-- 05 -->⏪ Reverted" },
+  # Skip dev-only
+  { message = "^doc", skip = true },
+  { message = "^test", skip = true },
+  { message = "^build", skip = true },
+  { message = "^ci", skip = true },
+  { message = "^style", skip = true },
+  # Skip low-context chore commits
+  { message = "^chore:.*[Cc]leanup|^misc:.*[Cc]leanup", skip = true },
+  { message = "^chore:.*[Ii]mprovement", skip = true },
+  { message = "^chore:.*[Dd]ependenc", skip = true },
+  { message = "^chore\\(release\\)|^chore\\(deps\\)|^chore\\(changelog\\)", skip = true },
+  # Catch-all
+  { message = ".*", group = "<!-- 99 -->📦 Other" },
+]
+filter_commits = false
+tag_pattern = "v[0-9]*"
+topo_order = false
+sort_commits = "newest"

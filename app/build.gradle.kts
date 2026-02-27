@@ -15,8 +15,8 @@ android {
         applicationId = "eu.hxreborn.cleanshare"
         minSdk = 30
         targetSdk = 36
-        versionCode = 203
-        versionName = "2.0.3"
+        versionCode = 210
+        versionName = "2.1.0"
     }
 
     signingConfigs {

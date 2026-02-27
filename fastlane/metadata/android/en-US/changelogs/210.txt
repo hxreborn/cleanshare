@@ -1,0 +1,5 @@
+- Add trash as alternative to permanent delete for shared screenshots
+- Detect edited screenshots via IPC resolution
+- Replace deletion mode dialog with segmented buttons
+- Fix share session state not resetting on each chooser open
+- Improve preference summaries

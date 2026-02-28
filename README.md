@@ -30,8 +30,9 @@ it also blocks backend shortcut queries to prevent share target profiling.
 - Hide Direct Share suggestions from the share sheet
 - Block share target profiling via Android System Intelligence
 - Hide Quick Share / Nearby Share from share sheet results
-- Option to delete shared screenshots after sharing (root required)
-- Built-in settings app
+- Delete shared screenshots after sharing with configurable delay (root required)
+- Move to trash or permanently delete
+- Built-in settings app with Material 3 UI
 
 ## Requirements
 
@@ -54,7 +55,6 @@ it also blocks backend shortcut queries to prevent share target profiling.
    **Android 13+**
     - Intent Resolver (`com.android.intentresolver`)
     - Android System Intelligence (`com.google.android.as`)
-    - Ignore System Framework (`android`) even if marked "Recommended"
 
    **Android 11-12**
     - System Framework (`android`)
@@ -62,8 +62,68 @@ it also blocks backend shortcut queries to prevent share target profiling.
 
 4. Reboot your device.
 
-Don't worry about selecting all scopes. The module checks your Android version and only applies
-what's needed.
+System Framework is only needed if you use the delete-after-share feature. The module checks
+your Android version and only applies what's needed.
+
+## FAQ
+
+<details>
+<summary>What does "Move to trash" do?</summary>
+
+It uses Android's standard [MediaStore trash](https://developer.android.com/reference/android/provider/MediaStore#IS_TRASHED).
+The file gets flagged as trashed but stays on disk for 30 days before Android auto-removes it.
+You can recover it from the trash in Google Photos, Files by Google, or any gallery app that
+supports MediaStore trash.
+
+</details>
+
+<details>
+<summary>Why doesn't the checkbox appear after editing a screenshot?</summary>
+
+When you edit a screenshot, the editor creates a temporary copy with a different filename. The
+module tries to find the original screenshot by querying
+[MediaStore](https://developer.android.com/reference/android/provider/MediaStore) for recent
+files in your Screenshots folder, but it depends on the filename matching a configurable pattern.
+If your device uses a non-standard naming convention, it may not find a match. You can adjust
+the pattern in settings.
+
+</details>
+
+<details>
+<summary>Why is there a delay before deletion?</summary>
+
+The receiving app needs time to process the shared file. If the file is deleted immediately,
+the share may fail. The delay is configurable in settings.
+
+</details>
+
+<details>
+<summary>Does Quick Share filtering work on all devices?</summary>
+
+It targets the standard AOSP
+[IntentResolver](https://cs.android.com/android/platform/superproject/+/main:packages/modules/IntentResolver/)
+package. Some OEMs (e.g. HyperOS) use heavily modified share sheets with different packages
+and are currently unsupported.
+
+</details>
+
+<details>
+<summary>Quick Share still appears when sharing from app X</summary>
+
+Some apps (e.g. Firefox) implement their own custom share sheet instead of using Android's native
+one. CleanShare can only hook the system share sheet (`com.android.intentresolver`). If an app
+rolls its own, there's nothing the module can do about it.
+
+</details>
+
+<details>
+<summary>Do I need root for all features?</summary>
+
+No. Direct Share hiding and Quick Share filtering work without root. Only the delete-after-share
+feature requires root because it needs to modify MediaStore entries and delete files outside the
+app's [storage sandbox](https://developer.android.com/training/data-storage#scoped-storage).
+
+</details>
 
 ## Build
 

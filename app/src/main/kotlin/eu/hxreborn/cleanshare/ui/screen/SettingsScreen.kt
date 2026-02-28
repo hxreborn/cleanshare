@@ -58,6 +58,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -584,7 +585,7 @@ private fun <T> SegmentedPreferenceItem(
                     onClick = { onSelected(option) },
                     shape = SegmentedButtonDefaults.itemShape(index, options.size),
                 ) {
-                    Text(label(option))
+                    Text(label(option), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }

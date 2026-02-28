@@ -8,7 +8,7 @@ enum class DeletionAction(
     val displayName: String,
     @StringRes val summaryRes: Int,
 ) {
-    DELETE("delete", "Permanently delete", R.string.pref_deletion_action_summary_delete),
+    DELETE("delete", "Delete", R.string.pref_deletion_action_summary_delete),
     TRASH("trash", "Move to trash", R.string.pref_deletion_action_summary_trash),
     ;
 

@@ -58,7 +58,7 @@ fun RegexEditDialog(
                         pattern = value
                         isValid = value.isNotBlank() && runCatching { Regex(value) }.isSuccess
                     },
-                    label = { Text("Regex") },
+                    label = { Text(stringResource(R.string.regex_label)) },
                     isError = !isValid,
                     supportingText =
                         if (!isValid) {

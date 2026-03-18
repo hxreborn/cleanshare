@@ -1,4 +1,4 @@
-@file:Suppress("ktlint:standard:function-naming", "AssignedValueIsNeverRead")
+@file:Suppress("ktlint:standard:function-naming")
 
 package eu.hxreborn.cleanshare.ui.screen
 

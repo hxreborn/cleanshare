@@ -1,27 +1,18 @@
 # LSPosed module entry point
 -keep class eu.hxreborn.cleanshare.CleanShareModule { *; }
 
-# Keep all @XposedHooker annotated classes
--keep @io.github.libxposed.api.annotations.XposedHooker class * { *; }
-
-# Keep annotation classes
--keep class io.github.libxposed.api.annotations.** { *; }
+# Prevent R8 from merging hook classes into app process code (compileOnly API)
+-keep,allowobfuscation class eu.hxreborn.cleanshare.hook.** { *; }
 
 # Preserve annotations
--keepattributes *Annotation*
 -keepattributes RuntimeVisibleAnnotations
-
-# Keep hook methods
--keepclassmembers class * {
-    @io.github.libxposed.api.annotations.BeforeInvocation <methods>;
-    @io.github.libxposed.api.annotations.AfterInvocation <methods>;
-}
 
 # Keep XposedModule subclasses
 -adaptresourcefilecontents META-INF/xposed/java_init.list
 -keep,allowobfuscation,allowoptimization public class * extends io.github.libxposed.api.XposedModule {
-    public <init>(...);
+    public <init>();
     public void onPackageLoaded(...);
+    public void onPackageReady(...);
 }
 
 # ContentProvider registered in manifest must survive shrinking

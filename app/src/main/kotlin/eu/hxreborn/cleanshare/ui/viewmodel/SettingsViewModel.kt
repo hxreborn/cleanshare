@@ -61,7 +61,7 @@ class SettingsViewModelImpl(
             prefsRepository.observeBoolean(Prefs.SHOW_DELETION_TOAST),
             prefsRepository.observeString(Prefs.SCREENSHOT_PATTERN),
             rootAvailable,
-        ) { values ->
+        ) { values: Array<Any> ->
             SettingsUiState.Ready(
                 hideDirectShare = values[0] as Boolean,
                 hideQuickShare = values[1] as Boolean,

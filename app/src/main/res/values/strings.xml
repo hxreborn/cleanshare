@@ -49,6 +49,7 @@
     <string name="regex_dialog_learn_more">Learn more</string>
     <string name="regex_dialog_invalid_pattern">Invalid pattern</string>
     <string name="regex_dialog_default">Default</string>
+    <string name="regex_label">Regex</string>
 
     <!-- Actions -->
     <string name="back">Back</string>

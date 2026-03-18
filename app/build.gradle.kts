@@ -1,10 +1,8 @@
 plugins {
     alias(libs.plugins.agp.app)
-    alias(libs.plugins.kotlin)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.serialization)
     alias(libs.plugins.aboutlibraries)
-    alias(libs.plugins.ktlint)
 }
 
 android {
@@ -15,8 +13,8 @@ android {
         applicationId = "eu.hxreborn.cleanshare"
         minSdk = 30
         targetSdk = 36
-        versionCode = 210
-        versionName = "2.1.0"
+        versionCode = 300
+        versionName = "3.0.0"
     }
 
     signingConfigs {
@@ -71,7 +69,7 @@ android {
 
     packaging {
         resources {
-            pickFirsts += "META-INF/xposed/*"
+            merges += "META-INF/xposed/*"
         }
     }
 
@@ -90,10 +88,30 @@ kotlin {
     jvmToolchain(21)
 }
 
-ktlint {
-    version.set("1.8.0")
-    android.set(true)
-    ignoreFailures.set(false)
+val copyAboutLibraries by tasks.registering(Copy::class) {
+    dependsOn("exportLibraryDefinitions")
+    from("build/generated/aboutLibraries/aboutlibraries.json")
+    into("build/generated/aboutLibrariesRes/raw")
+}
+android.sourceSets["main"].res.directories.add("build/generated/aboutLibrariesRes")
+tasks.named("preBuild").configure { dependsOn(copyAboutLibraries) }
+
+val ktlintCli = "com.pinterest.ktlint:ktlint-cli:1.8.0"
+
+val ktlintCheck by tasks.registering(JavaExec::class) {
+    group = "verification"
+    description = "Check Kotlin code style"
+    classpath = configurations.detachedConfiguration(dependencies.create(ktlintCli))
+    mainClass.set("com.pinterest.ktlint.Main")
+    args("src/**/*.kt")
+}
+
+val ktlintFormat by tasks.registering(JavaExec::class) {
+    group = "verification"
+    description = "Fix Kotlin code style"
+    classpath = configurations.detachedConfiguration(dependencies.create(ktlintCli))
+    mainClass.set("com.pinterest.ktlint.Main")
+    args("-F", "src/**/*.kt")
 }
 
 dependencies {

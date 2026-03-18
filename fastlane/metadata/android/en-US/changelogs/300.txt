@@ -1,0 +1,3 @@
+Migrate to libxposed API 101 (interceptor chain model)
+Upgrade to Gradle 9.4, AGP 9.1.0, Kotlin 2.3.10
+Migrate libxposed dependencies from submodules to MavenCentral

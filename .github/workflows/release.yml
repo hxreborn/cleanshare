@@ -16,7 +16,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          submodules: recursive
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -34,9 +33,6 @@ jobs:
           org.gradle.parallel=true
           org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
           EOF
-
-      - name: Build libxposed to mavenLocal
-        run: ./gradlew buildLibxposed
 
       - name: Decode keystore
         env:

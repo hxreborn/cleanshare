@@ -4,8 +4,9 @@ CleanShare is an Xposed module that removes Direct Share's suggested contact/con
 from Android's Share Sheet.
 
 ![Android CI](https://github.com/hxreborn/cleanshare/actions/workflows/android.yml/badge.svg)
-![Kotlin](https://img.shields.io/badge/Kotlin-2.1.21-7F52FF?style=flat&logo=kotlin&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Kotlin-2.3.10-7F52FF?style=flat&logo=kotlin&logoColor=white)
 ![Android](https://img.shields.io/badge/API-30%2B-3DDC84?logo=android&logoColor=white)
+![Xposed Repo](https://img.shields.io/github/downloads/Xposed-Modules-Repo/eu.hxreborn.cleanshare/total?label=Xposed%20Repo&logo=android&logoColor=white)
 
 <div align="center">
   <img src=".github/assets/direct-share-targets.png" alt="Direct Share targets row removed" width="320" />
@@ -37,7 +38,7 @@ it also blocks backend shortcut queries to prevent share target profiling.
 ## Requirements
 
 - Android 11 (API 30) or higher
-- [LSPosed](https://github.com/JingMatrix/LSPosed) (JingMatrix fork recommended)
+- [LSPosed](https://github.com/JingMatrix/LSPosed) 2.0.0+ (JingMatrix fork recommended)
 - Pixel or AOSP-based ROM (Other OEMs are untested)
 
 ## Installation
@@ -128,9 +129,8 @@ app's [storage sandbox](https://developer.android.com/training/data-storage#scop
 ## Build
 
 ```bash
-git clone --recurse-submodules https://github.com/hxreborn/cleanshare.git
+git clone https://github.com/hxreborn/cleanshare.git
 cd cleanshare
-./gradlew buildLibxposed
 ./gradlew assembleRelease
 ```
 

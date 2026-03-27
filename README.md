@@ -38,7 +38,7 @@ it also blocks backend shortcut queries to prevent share target profiling.
 ## Requirements
 
 - Android 11 (API 30) or higher
-- [LSPosed](https://github.com/JingMatrix/LSPosed) 2.0.0+ (JingMatrix fork recommended)
+- An LSPosed Manager version with API 101 support (required for now)
 - Pixel or AOSP-based ROM (Other OEMs are untested)
 
 ## Installation

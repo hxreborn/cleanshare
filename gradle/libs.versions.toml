@@ -11,7 +11,7 @@ compose-preference = "1.1.1"
 aboutlibraries = "12.1.2"
 splashscreen = "1.0.1"
 libsu = "6.0.0"
-navigation3 = "1.1.0-alpha03"
+navigation3 = "1.2.0-alpha02"
 
 [libraries]
 libxposed-api = { group = "io.github.libxposed", name = "api", version.ref = "xposed" }

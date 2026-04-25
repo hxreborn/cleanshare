@@ -9,6 +9,7 @@ sealed interface SettingsUiState {
     data class Ready(
         val hideDirectShare: Boolean,
         val hideQuickShare: Boolean,
+        val isLauncherIconHidden: Boolean,
         val deletionEnabled: Boolean,
         val deletionMode: DeletionMode,
         val deletionAction: DeletionAction,

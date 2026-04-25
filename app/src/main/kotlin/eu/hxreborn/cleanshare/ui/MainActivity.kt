@@ -36,6 +36,7 @@ class MainActivity :
                 localPrefs = getSharedPreferences(PREFS_FILE_NAME, MODE_PRIVATE),
                 remotePrefsProvider = { remotePrefs },
             ),
+            applicationContext,
         )
     }
 

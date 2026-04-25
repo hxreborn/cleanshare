@@ -30,6 +30,7 @@ import androidx.compose.material.icons.outlined.NearbyOff
 import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.outlined.PhonelinkErase
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material3.CircularProgressIndicator
@@ -134,6 +135,7 @@ fun SettingsScreen(
                     state = state,
                     onHideDirectShareChange = viewModel::setHideDirectShare,
                     onHideQuickShareChange = viewModel::setHideQuickShare,
+                    onLauncherIconHiddenChange = viewModel::setLauncherIconHidden,
                     onDeletionEnabledChange = viewModel::setDeletionEnabled,
                     onDeletionModeChange = viewModel::setDeletionMode,
                     onDeletionActionChange = viewModel::setDeletionAction,
@@ -153,6 +155,7 @@ private fun SettingsContent(
     state: SettingsUiState.Ready,
     onHideDirectShareChange: (Boolean) -> Unit,
     onHideQuickShareChange: (Boolean) -> Unit,
+    onLauncherIconHiddenChange: (Boolean) -> Unit,
     onDeletionEnabledChange: (Boolean) -> Unit,
     onDeletionModeChange: (DeletionMode) -> Unit,
     onDeletionActionChange: (DeletionAction) -> Unit,
@@ -199,7 +202,7 @@ private fun SettingsContent(
                 title = { Text(stringResource(R.string.pref_category_features)) },
             )
 
-            val featureItemCount = 2
+            val featureItemCount = 3
             val hideDirectShareShape = shapeForPosition(featureItemCount, 0)
             switchPreference(
                 modifier =
@@ -254,6 +257,35 @@ private fun SettingsContent(
                     Text(text = stringResource(R.string.pref_hide_quick_share_summary))
                 },
                 onValueChange = onHideQuickShareChange,
+            )
+
+            item { Spacer(Modifier.height(2.dp)) }
+
+            val hideLauncherIconShape = shapeForPosition(featureItemCount, 2)
+            switchPreference(
+                modifier =
+                    Modifier
+                        .padding(horizontal = 8.dp)
+                        .background(color = surface, shape = hideLauncherIconShape)
+                        .clip(hideLauncherIconShape),
+                key = "hide_launcher_icon",
+                value = state.isLauncherIconHidden,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Outlined.PhonelinkErase,
+                        contentDescription = null,
+                    )
+                },
+                title = {
+                    Text(
+                        text = stringResource(R.string.pref_hide_launcher_icon_title),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                },
+                summary = {
+                    Text(text = stringResource(R.string.pref_hide_launcher_icon_summary))
+                },
+                onValueChange = onLauncherIconHiddenChange,
             )
 
             preferenceCategory(

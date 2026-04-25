@@ -1,0 +1,3 @@
+Add "Hide Launcher Icon" toggle in settings
+Update Kotlin to 2.3.21, Compose BOM to 2026.04.01, navigation3 to 1.2.0-alpha02
+Update Gradle wrapper to 9.4.1

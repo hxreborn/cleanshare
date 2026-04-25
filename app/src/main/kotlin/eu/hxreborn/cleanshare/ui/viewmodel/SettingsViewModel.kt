@@ -1,5 +1,6 @@
 package eu.hxreborn.cleanshare.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -9,6 +10,8 @@ import eu.hxreborn.cleanshare.prefs.Prefs
 import eu.hxreborn.cleanshare.prefs.PrefsRepository
 import eu.hxreborn.cleanshare.ui.state.SettingsUiState
 import eu.hxreborn.cleanshare.util.RootUtils
+import eu.hxreborn.cleanshare.util.isLauncherIconVisible
+import eu.hxreborn.cleanshare.util.setLauncherIconVisible
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -36,17 +39,22 @@ abstract class SettingsViewModel : ViewModel() {
 
     abstract fun setScreenshotPattern(pattern: String)
 
+    abstract fun setLauncherIconHidden(hidden: Boolean)
+
     abstract fun syncLocalToRemote()
 }
 
 class SettingsViewModelImpl(
     private val prefsRepository: PrefsRepository,
+    private val applicationContext: Context,
 ) : SettingsViewModel() {
     private val rootAvailable = MutableStateFlow(false)
+    private val launcherIconHidden = MutableStateFlow(false)
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
             rootAvailable.value = RootUtils.isRootAvailable()
+            launcherIconHidden.value = !isLauncherIconVisible(applicationContext)
         }
     }
 
@@ -61,10 +69,12 @@ class SettingsViewModelImpl(
             prefsRepository.observeBoolean(Prefs.SHOW_DELETION_TOAST),
             prefsRepository.observeString(Prefs.SCREENSHOT_PATTERN),
             rootAvailable,
+            launcherIconHidden,
         ) { values: Array<Any> ->
             SettingsUiState.Ready(
                 hideDirectShare = values[0] as Boolean,
                 hideQuickShare = values[1] as Boolean,
+                isLauncherIconHidden = values[9] as Boolean,
                 deletionEnabled = values[2] as Boolean,
                 deletionMode = values[3] as DeletionMode,
                 deletionAction = values[4] as DeletionAction,
@@ -111,6 +121,11 @@ class SettingsViewModelImpl(
         prefsRepository.setString(Prefs.SCREENSHOT_PATTERN, pattern)
     }
 
+    override fun setLauncherIconHidden(hidden: Boolean) {
+        setLauncherIconVisible(applicationContext, !hidden)
+        launcherIconHidden.value = hidden
+    }
+
     override fun syncLocalToRemote() {
         prefsRepository.syncLocalToRemote()
     }
@@ -118,7 +133,8 @@ class SettingsViewModelImpl(
 
 class SettingsViewModelFactory(
     private val prefsRepository: PrefsRepository,
+    private val applicationContext: Context,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T = SettingsViewModelImpl(prefsRepository) as T
+    override fun <T : ViewModel> create(modelClass: Class<T>): T = SettingsViewModelImpl(prefsRepository, applicationContext) as T
 }

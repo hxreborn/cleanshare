@@ -49,7 +49,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Mirror to Xposed-Modules-Repo
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           repository: Xposed-Modules-Repo/eu.hxreborn.cleanshare
           token: ${{ secrets.XPOSED_REPO_PAT }}

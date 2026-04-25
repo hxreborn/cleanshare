@@ -1,17 +1,17 @@
 [versions]
 agp = "9.1.0"
-kotlin = "2.3.10"
+kotlin = "2.3.21"
 xposed = "101.0.0"
 lifecycle = "2.10.0"
 core-ktx = "1.17.0"
-compose-bom = "2026.01.00"
-activity-compose = "1.12.3"
-material3 = "1.5.0-alpha13"
+compose-bom = "2026.04.01"
+activity-compose = "1.13.0"
+material3 = "1.5.0-alpha18"
 compose-preference = "1.1.1"
 aboutlibraries = "12.1.2"
 splashscreen = "1.0.1"
 libsu = "6.0.0"
-navigation3 = "1.1.0-alpha03"
+navigation3 = "1.2.0-alpha02"
 
 [libraries]
 libxposed-api = { group = "io.github.libxposed", name = "api", version.ref = "xposed" }

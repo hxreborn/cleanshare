@@ -13,17 +13,17 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '21'
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
 
       - name: Configure Gradle for CI
         run: |
@@ -61,13 +61,13 @@ jobs:
           GITHUB_REPO: ${{ github.repository }}
 
       - name: Create release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           body: ${{ steps.changelog.outputs.content || format('Release {0}', github.ref_name) }}
           files: app/build/outputs/apk/release/app-release.apk
 
       - name: Mirror to Xposed-Modules-Repo
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           repository: Xposed-Modules-Repo/eu.hxreborn.cleanshare
           token: ${{ secrets.XPOSED_REPO_PAT }}

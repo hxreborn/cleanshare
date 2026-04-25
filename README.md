@@ -1,12 +1,11 @@
 # CleanShare
 
-CleanShare is an Xposed module that removes Direct Share's suggested contact/conversation shortcuts
+Xposed module that removes Direct Share's suggested contact/conversation shortcuts
 from Android's Share Sheet.
 
 ![Android CI](https://github.com/hxreborn/cleanshare/actions/workflows/android.yml/badge.svg)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.3.10-7F52FF?style=flat&logo=kotlin&logoColor=white)
 ![Android](https://img.shields.io/badge/API-30%2B-3DDC84?logo=android&logoColor=white)
-![Xposed Repo](https://img.shields.io/github/downloads/Xposed-Modules-Repo/eu.hxreborn.cleanshare/total?label=Xposed%20Repo&logo=android&logoColor=white)
 
 <div align="center">
   <img src=".github/assets/direct-share-targets.png" alt="Direct Share targets row removed" width="320" />
@@ -150,5 +149,4 @@ RELEASE_KEY_PASSWORD=<key_password>
 
 <a href="LICENSE"><img src=".github/assets/gplv3.svg" height="90" alt="GPLv3"></a>
 
-This project is licensed under the GNU General Public License v3.0 – see the [LICENSE](LICENSE) file
-for details.
+This project is licensed under the GNU General Public License v3.0. See [LICENSE](LICENSE) for details.

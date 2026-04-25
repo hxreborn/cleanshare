@@ -1,10 +1,10 @@
-<p>An Xposed module for cleaning up Android's Share Sheet. Added settings app, Quick Share filtering, and delete-after-sharing for screenshots.</p>
+<p>Xposed module that cleans up Android's Share Sheet.</p>
 
 <p><b>Features:</b></p>
 <ul>
 <li>Hide Direct Share suggestions and block share target profiling</li>
 <li>Hide Quick Share / Nearby Share</li>
-<li>Option to delete shared screenshots after sharing (root required)</li>
+<li>Delete shared screenshots after sharing (root required)</li>
 <li>Built-in settings app</li>
 </ul>
 

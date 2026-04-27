@@ -27,10 +27,10 @@ import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.FolderDelete
 import androidx.compose.material.icons.outlined.Gavel
 import androidx.compose.material.icons.outlined.NearbyOff
+import androidx.compose.material.icons.outlined.PhonelinkErase
 import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.material.icons.outlined.PhonelinkErase
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material3.CircularProgressIndicator
@@ -609,7 +609,10 @@ private fun <T> SegmentedPreferenceItem(
             }
         }
         SingleChoiceSegmentedButtonRow(
-            modifier = Modifier.fillMaxWidth().padding(start = 40.dp, top = 8.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(start = 40.dp, top = 8.dp),
         ) {
             options.forEachIndexed { index, option ->
                 SegmentedButton(

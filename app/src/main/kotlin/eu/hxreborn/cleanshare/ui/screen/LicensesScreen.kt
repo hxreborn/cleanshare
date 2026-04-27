@@ -48,7 +48,12 @@ fun LicensesScreen(onBack: () -> Unit) {
         },
         contentWindowInsets = WindowInsets.navigationBars,
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+        ) {
             val listState = rememberLazyListState()
             LibrariesContainer(
                 modifier =

@@ -93,7 +93,9 @@ val copyAboutLibraries by tasks.registering(Copy::class) {
     from("build/generated/aboutLibraries/aboutlibraries.json")
     into("build/generated/aboutLibrariesRes/raw")
 }
-android.sourceSets["main"].res.directories.add("build/generated/aboutLibrariesRes")
+android.sourceSets["main"]
+    .res.directories
+    .add("build/generated/aboutLibrariesRes")
 tasks.named("preBuild").configure { dependsOn(copyAboutLibraries) }
 
 val ktlintCli = "com.pinterest.ktlint:ktlint-cli:1.8.0"

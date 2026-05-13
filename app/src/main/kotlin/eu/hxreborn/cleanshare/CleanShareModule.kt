@@ -8,6 +8,7 @@ import android.os.Bundle
 import eu.hxreborn.cleanshare.hook.deletion.CheckboxHook
 import eu.hxreborn.cleanshare.hook.deletion.DeletionHook
 import eu.hxreborn.cleanshare.hook.directshare.LowRamHooker
+import eu.hxreborn.cleanshare.hook.directshare.ServiceTargetCountHooker
 import eu.hxreborn.cleanshare.hook.directshare.ShareTargetsHooker
 import eu.hxreborn.cleanshare.hook.quickshare.QuickShareFilterHooker
 import eu.hxreborn.cleanshare.util.findClass
@@ -54,6 +55,7 @@ class CleanShareModule(
         when (param.packageName) {
             SHARE_SHEET_PKG -> {
                 hookLowRam()
+                hookServiceTargetCountFallback(param.classLoader)
                 hookScreenshotDelete(param.classLoader)
                 hookQuickShareFilter(param.classLoader)
             }
@@ -73,6 +75,19 @@ class CleanShareModule(
             log("Hooked ActivityManager.isLowRamDeviceStatic")
         }.onFailure {
             log("LowRam hook failed: ${it.message}")
+        }
+    }
+
+    // Fallback for ROMs where ART inlines isLowRamDeviceStatic() into ChooserListAdapter
+    private fun hookServiceTargetCountFallback(classLoader: ClassLoader) {
+        runCatching {
+            val clazz = classLoader.loadClass("com.android.intentresolver.ChooserListAdapter")
+            val method = clazz.getDeclaredMethod("getServiceTargetCount")
+            method.isAccessible = true
+            hook(method, ServiceTargetCountHooker::class.java)
+            log("Hooked ChooserListAdapter.getServiceTargetCount")
+        }.onFailure {
+            log("getServiceTargetCount hook failed: ${it.message}")
         }
     }
 

@@ -3,6 +3,7 @@ package eu.hxreborn.cleanshare.hook.directshare
 import eu.hxreborn.cleanshare.CleanShareModule
 import eu.hxreborn.cleanshare.util.PREFS_FILE_NAME
 import eu.hxreborn.cleanshare.util.PREF_KEY_HIDE_DIRECT_SHARE
+import eu.hxreborn.cleanshare.util.debugLog
 import io.github.libxposed.api.XposedInterface.BeforeHookCallback
 import io.github.libxposed.api.XposedInterface.Hooker
 import io.github.libxposed.api.annotations.BeforeInvocation
@@ -41,3 +42,21 @@ class ShareTargetsHooker : Hooker {
         }
     }
 }
+
+@XposedHooker
+class ServiceTargetCountHooker : Hooker {
+    companion object {
+        @JvmStatic
+        @BeforeInvocation
+        fun before(callback: BeforeHookCallback) {
+            val module = CleanShareModule.instance ?: return
+            val prefs = module.getRemotePreferences(PREFS_FILE_NAME)
+            val enabled = prefs?.getBoolean(PREF_KEY_HIDE_DIRECT_SHARE, true) ?: true
+            debugLog { "[DirectShare] getServiceTargetCount called, enabled=$enabled" }
+            if (enabled) {
+                callback.returnAndSkip(0)
+            }
+        }
+    }
+}
+

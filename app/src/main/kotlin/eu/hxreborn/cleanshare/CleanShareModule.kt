@@ -54,6 +54,7 @@ class CleanShareModule : XposedModule() {
         when (param.packageName) {
             SHARE_SHEET_PKG -> {
                 hookLowRam()
+                hookServiceTargetCountFallback(param.classLoader)
                 hookScreenshotDelete(param.classLoader)
                 hookQuickShareFilter(param.classLoader)
             }
@@ -70,13 +71,30 @@ class CleanShareModule : XposedModule() {
             method.isAccessible = true
             hook(method).intercept { chain ->
                 val prefs = getRemotePreferences(PREFS_FILE_NAME)
-                val enabled = prefs?.getBoolean(PREF_KEY_HIDE_DIRECT_SHARE, true) ?: true
+                val enabled = prefs.getBoolean(PREF_KEY_HIDE_DIRECT_SHARE, true)
                 debugLog { "[DirectShare] isLowRamDeviceStatic called, enabled=$enabled" }
                 if (enabled) return@intercept true
                 chain.proceed()
             }
             log(Log.INFO, TAG, "Hooked ActivityManager.isLowRamDeviceStatic")
         }.onFailure { log(Log.WARN, TAG, "LowRam hook failed: ${it.message}") }
+    }
+
+    // Fallback for ROMs where ART inlines isLowRamDeviceStatic() into ChooserListAdapter
+    private fun hookServiceTargetCountFallback(classLoader: ClassLoader) {
+        runCatching {
+            val clazz = classLoader.loadClass("com.android.intentresolver.ChooserListAdapter")
+            val method = clazz.getDeclaredMethod("getServiceTargetCount")
+            method.isAccessible = true
+            hook(method).intercept { chain ->
+                val prefs = getRemotePreferences(PREFS_FILE_NAME)
+                val enabled = prefs.getBoolean(PREF_KEY_HIDE_DIRECT_SHARE, true)
+                debugLog { "[DirectShare] getServiceTargetCount called, enabled=$enabled" }
+                if (enabled) return@intercept 0
+                chain.proceed()
+            }
+            log(Log.INFO, TAG, "Hooked ChooserListAdapter.getServiceTargetCount")
+        }.onFailure { log(Log.WARN, TAG, "getServiceTargetCount hook failed: ${it.message}") }
     }
 
     private fun hookScreenshotDelete(classLoader: ClassLoader) {
@@ -122,7 +140,7 @@ class CleanShareModule : XposedModule() {
             method.isAccessible = true
             hook(method).intercept { chain ->
                 val prefs = getRemotePreferences(PREFS_FILE_NAME)
-                val enabled = prefs?.getBoolean(PREF_KEY_HIDE_DIRECT_SHARE, true) ?: true
+                val enabled = prefs.getBoolean(PREF_KEY_HIDE_DIRECT_SHARE, true)
                 debugLog { "[DirectShare] getShareTargets called, enabled=$enabled" }
                 if (enabled) return@intercept emptyList<Any>()
                 chain.proceed()
@@ -153,7 +171,7 @@ class CleanShareModule : XposedModule() {
                 hook(method).intercept { chain ->
                     val result = chain.proceed()
                     val prefs = getRemotePreferences(PREFS_FILE_NAME)
-                    val enabled = prefs?.getBoolean(PREF_KEY_HIDE_QUICK_SHARE, false) ?: false
+                    val enabled = prefs.getBoolean(PREF_KEY_HIDE_QUICK_SHARE, false)
                     if (!enabled) return@intercept result
                     val list = result as? MutableList<ResolveInfo> ?: return@intercept result
                     list.removeAll { it.activityInfo?.name == QUICK_SHARE_ACTIVITY }

@@ -149,6 +149,7 @@ fun SettingsScreen(
     }
 }
 
+@Suppress("LocalContextGetResourceValueCall") // resource read is in an onClick handler, not composition
 @Composable
 private fun SettingsContent(
     innerPadding: PaddingValues,

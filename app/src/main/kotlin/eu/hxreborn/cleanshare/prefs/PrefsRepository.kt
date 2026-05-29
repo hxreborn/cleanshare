@@ -58,7 +58,7 @@ class PrefsRepository(
 
     fun <E : Enum<E>> observeEnum(pref: EnumPref<E>): Flow<E> = observe(pref) { getEnum(pref) }
 
-    fun syncLocalToRemote() {
+    fun syncToRemote() {
         val remote = remotePrefsProvider() ?: return
         remote.edit {
             Prefs.all.forEach { it.copyTo(localPrefs, this) }

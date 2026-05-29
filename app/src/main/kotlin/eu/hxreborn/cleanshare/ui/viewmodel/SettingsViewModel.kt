@@ -40,8 +40,6 @@ abstract class SettingsViewModel : ViewModel() {
     abstract fun setScreenshotPattern(pattern: String)
 
     abstract fun setLauncherIconHidden(hidden: Boolean)
-
-    abstract fun syncLocalToRemote()
 }
 
 class SettingsViewModelImpl(
@@ -124,10 +122,6 @@ class SettingsViewModelImpl(
     override fun setLauncherIconHidden(hidden: Boolean) {
         setLauncherIconVisible(applicationContext, !hidden)
         launcherIconHidden.value = hidden
-    }
-
-    override fun syncLocalToRemote() {
-        prefsRepository.syncLocalToRemote()
     }
 }
 

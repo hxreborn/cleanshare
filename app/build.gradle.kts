@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "eu.hxreborn.cleanshare"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "eu.hxreborn.cleanshare"

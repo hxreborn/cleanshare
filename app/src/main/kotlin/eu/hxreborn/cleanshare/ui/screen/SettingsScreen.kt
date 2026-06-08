@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.SpeakerNotes
 import androidx.compose.material.icons.outlined.BugReport
@@ -47,6 +48,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,6 +56,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -68,7 +71,6 @@ import eu.hxreborn.cleanshare.R
 import eu.hxreborn.cleanshare.prefs.DeletionAction
 import eu.hxreborn.cleanshare.prefs.DeletionMode
 import eu.hxreborn.cleanshare.ui.state.SettingsUiState
-import eu.hxreborn.cleanshare.ui.theme.Tokens
 import eu.hxreborn.cleanshare.ui.util.RegexEditDialog
 import eu.hxreborn.cleanshare.ui.util.drawVerticalScrollbar
 import eu.hxreborn.cleanshare.ui.util.shapeForPosition
@@ -95,21 +97,15 @@ fun SettingsScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         contentWindowInsets = WindowInsets.navigationBars,
         topBar = {
+            val isExpanded by remember {
+                derivedStateOf { scrollBehavior.state.collapsedFraction < 0.5f }
+            }
             LargeTopAppBar(
                 title = {
-                    val isExpandedSlot =
-                        LocalTextStyle.current.fontSize >= MaterialTheme.typography.headlineMedium.fontSize
                     Text(
                         text = stringResource(R.string.app_name),
-                        style =
-                            if (isExpandedSlot) {
-                                MaterialTheme.typography.headlineLarge.copy(
-                                    lineHeight = Tokens.ExpandedTitleLineHeight,
-                                )
-                            } else {
-                                LocalTextStyle.current
-                            },
-                        maxLines = if (isExpandedSlot) Tokens.ExpandedTitleMaxLines else 1,
+                        style = if (isExpanded) MaterialTheme.typography.headlineLarge else LocalTextStyle.current,
+                        maxLines = if (isExpanded) 2 else 1,
                     )
                 },
                 scrollBehavior = scrollBehavior,
@@ -149,6 +145,7 @@ fun SettingsScreen(
     }
 }
 
+@Suppress("LocalContextGetResourceValueCall") // resource read is in an onClick handler, not composition
 @Composable
 private fun SettingsContent(
     innerPadding: PaddingValues,
@@ -205,11 +202,7 @@ private fun SettingsContent(
             val featureItemCount = 3
             val hideDirectShareShape = shapeForPosition(featureItemCount, 0)
             switchPreference(
-                modifier =
-                    Modifier
-                        .padding(horizontal = 8.dp)
-                        .background(color = surface, shape = hideDirectShareShape)
-                        .clip(hideDirectShareShape),
+                modifier = Modifier.preferenceCell(hideDirectShareShape, surface),
                 key = "hide_direct_share",
                 value = state.hideDirectShare,
                 icon = {
@@ -234,11 +227,7 @@ private fun SettingsContent(
 
             val hideQuickShareShape = shapeForPosition(featureItemCount, 1)
             switchPreference(
-                modifier =
-                    Modifier
-                        .padding(horizontal = 8.dp)
-                        .background(color = surface, shape = hideQuickShareShape)
-                        .clip(hideQuickShareShape),
+                modifier = Modifier.preferenceCell(hideQuickShareShape, surface),
                 key = "hide_quick_share",
                 value = state.hideQuickShare,
                 icon = {
@@ -263,11 +252,7 @@ private fun SettingsContent(
 
             val hideLauncherIconShape = shapeForPosition(featureItemCount, 2)
             switchPreference(
-                modifier =
-                    Modifier
-                        .padding(horizontal = 8.dp)
-                        .background(color = surface, shape = hideLauncherIconShape)
-                        .clip(hideLauncherIconShape),
+                modifier = Modifier.preferenceCell(hideLauncherIconShape, surface),
                 key = "hide_launcher_icon",
                 value = state.isLauncherIconHidden,
                 icon = {
@@ -297,11 +282,7 @@ private fun SettingsContent(
 
             val deletionEnabledShape = shapeForPosition(deletionItemCount, 0)
             switchPreference(
-                modifier =
-                    Modifier
-                        .padding(horizontal = 8.dp)
-                        .background(color = surface, shape = deletionEnabledShape)
-                        .clip(deletionEnabledShape),
+                modifier = Modifier.preferenceCell(deletionEnabledShape, surface),
                 key = "deletion_enabled",
                 value = state.deletionEnabled,
                 enabled = { state.isRootAvailable },
@@ -343,11 +324,7 @@ private fun SettingsContent(
                         selected = state.deletionMode,
                         label = { it.displayName },
                         onSelected = onDeletionModeChange,
-                        modifier =
-                            Modifier
-                                .padding(horizontal = 8.dp)
-                                .background(color = surface, shape = modeShape)
-                                .clip(modeShape),
+                        modifier = Modifier.preferenceCell(modeShape, surface),
                     )
                 }
 
@@ -363,11 +340,7 @@ private fun SettingsContent(
                         selected = state.deletionAction,
                         label = { it.displayName },
                         onSelected = onDeletionActionChange,
-                        modifier =
-                            Modifier
-                                .padding(horizontal = 8.dp)
-                                .background(color = surface, shape = actionShape)
-                                .clip(actionShape),
+                        modifier = Modifier.preferenceCell(actionShape, surface),
                     )
                 }
 
@@ -378,11 +351,7 @@ private fun SettingsContent(
                     DeletionDelayItem(
                         delayMs = state.deletionDelayMs,
                         onDelayChange = onDeletionDelayChange,
-                        modifier =
-                            Modifier
-                                .padding(horizontal = 8.dp)
-                                .background(color = surface, shape = delayShape)
-                                .clip(delayShape),
+                        modifier = Modifier.preferenceCell(delayShape, surface),
                     )
                 }
 
@@ -390,11 +359,7 @@ private fun SettingsContent(
 
                 val toastShape = shapeForPosition(deletionItemCount, 4)
                 switchPreference(
-                    modifier =
-                        Modifier
-                            .padding(horizontal = 8.dp)
-                            .background(color = surface, shape = toastShape)
-                            .clip(toastShape),
+                    modifier = Modifier.preferenceCell(toastShape, surface),
                     key = "show_deletion_toast",
                     value = state.showDeletionToast,
                     icon = {
@@ -419,11 +384,7 @@ private fun SettingsContent(
 
                 val patternShape = shapeForPosition(deletionItemCount, 5)
                 preference(
-                    modifier =
-                        Modifier
-                            .padding(horizontal = 8.dp)
-                            .background(color = surface, shape = patternShape)
-                            .clip(patternShape),
+                    modifier = Modifier.preferenceCell(patternShape, surface),
                     key = "screenshot_pattern",
                     icon = {
                         Icon(
@@ -449,14 +410,9 @@ private fun SettingsContent(
 
             val aboutItemCount = 4
 
-            // 1. App version
             val versionShape = shapeForPosition(aboutItemCount, 0)
             preference(
-                modifier =
-                    Modifier
-                        .padding(horizontal = 8.dp)
-                        .background(color = surface, shape = versionShape)
-                        .clip(versionShape),
+                modifier = Modifier.preferenceCell(versionShape, surface),
                 key = "app_version",
                 icon = {
                     Icon(
@@ -487,14 +443,9 @@ private fun SettingsContent(
 
             item { Spacer(Modifier.height(2.dp)) }
 
-            // 2. Source code
             val gitRepoShape = shapeForPosition(aboutItemCount, 1)
             preference(
-                modifier =
-                    Modifier
-                        .padding(horizontal = 8.dp)
-                        .background(color = surface, shape = gitRepoShape)
-                        .clip(gitRepoShape),
+                modifier = Modifier.preferenceCell(gitRepoShape, surface),
                 key = "git_repo",
                 icon = {
                     Icon(
@@ -516,14 +467,9 @@ private fun SettingsContent(
 
             item { Spacer(Modifier.height(2.dp)) }
 
-            // 3. Licenses
             val licensesShape = shapeForPosition(aboutItemCount, 2)
             preference(
-                modifier =
-                    Modifier
-                        .padding(horizontal = 8.dp)
-                        .background(color = surface, shape = licensesShape)
-                        .clip(licensesShape),
+                modifier = Modifier.preferenceCell(licensesShape, surface),
                 key = "licenses",
                 icon = {
                     Icon(
@@ -545,14 +491,9 @@ private fun SettingsContent(
 
             item { Spacer(Modifier.height(2.dp)) }
 
-            // 4. Report issue
             val issuesShape = shapeForPosition(aboutItemCount, 3)
             preference(
-                modifier =
-                    Modifier
-                        .padding(horizontal = 8.dp)
-                        .background(color = surface, shape = issuesShape)
-                        .clip(issuesShape),
+                modifier = Modifier.preferenceCell(issuesShape, surface),
                 key = "report_issue",
                 icon = {
                     Icon(
@@ -669,7 +610,7 @@ private inline fun LazyListScope.switchPreference(
     key: String,
     value: Boolean,
     crossinline title: @Composable (Boolean) -> Unit,
-    modifier: Modifier = Modifier.fillMaxWidth(),
+    modifier: Modifier = Modifier,
     crossinline enabled: (Boolean) -> Boolean = { true },
     noinline icon: @Composable ((Boolean) -> Unit)? = null,
     noinline summary: @Composable ((Boolean) -> Unit)? = null,
@@ -687,6 +628,11 @@ private inline fun LazyListScope.switchPreference(
         )
     }
 }
+
+private fun Modifier.preferenceCell(
+    shape: RoundedCornerShape,
+    surface: Color,
+): Modifier = padding(horizontal = 8.dp).clip(shape).background(color = surface)
 
 private fun Context.openUrl(url: String) {
     startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))

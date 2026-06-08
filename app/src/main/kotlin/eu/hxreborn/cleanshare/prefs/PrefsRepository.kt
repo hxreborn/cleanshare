@@ -5,77 +5,59 @@ import androidx.core.content.edit
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.onStart
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener as OnChangeListener
+
+data class AppPrefs(
+    val hideDirectShare: Boolean,
+    val hideQuickShare: Boolean,
+    val deletionEnabled: Boolean,
+    val deletionMode: DeletionMode,
+    val deletionAction: DeletionAction,
+    val deletionDelayMs: Int,
+    val showDeletionToast: Boolean,
+    val screenshotPattern: String,
+)
 
 class PrefsRepository(
-    private val localPrefs: SharedPreferences,
-    private val remotePrefsProvider: () -> SharedPreferences?,
+    private val local: SharedPreferences,
+    private val remoteProvider: () -> SharedPreferences?,
 ) {
-    fun getBoolean(pref: BoolPref): Boolean = pref.read(localPrefs)
+    fun <T : Any> read(spec: PrefSpec<T>): T = spec.read(local)
 
-    fun setBoolean(
-        pref: BoolPref,
-        value: Boolean,
+    fun <T : Any> save(
+        spec: PrefSpec<T>,
+        value: T,
     ) {
-        localPrefs.edit { pref.write(this, value) }
-        remotePrefsProvider()?.edit { pref.write(this, value) }
+        local.edit { spec.write(this, value) }
+        remoteProvider()?.edit { spec.write(this, value) }
     }
 
-    fun observeBoolean(pref: BoolPref): Flow<Boolean> = observe(pref) { getBoolean(pref) }
-
-    fun getInt(pref: IntPref): Int = pref.read(localPrefs)
-
-    fun setInt(
-        pref: IntPref,
-        value: Int,
-    ) {
-        localPrefs.edit { pref.write(this, value) }
-        remotePrefsProvider()?.edit { pref.write(this, value) }
-    }
-
-    fun observeInt(pref: IntPref): Flow<Int> = observe(pref) { getInt(pref) }
-
-    fun getString(pref: StringPref): String = pref.read(localPrefs)
-
-    fun setString(
-        pref: StringPref,
-        value: String,
-    ) {
-        localPrefs.edit { pref.write(this, value) }
-        remotePrefsProvider()?.edit { pref.write(this, value) }
-    }
-
-    fun observeString(pref: StringPref): Flow<String> = observe(pref) { getString(pref) }
-
-    fun <E : Enum<E>> getEnum(pref: EnumPref<E>): E = pref.read(localPrefs)
-
-    fun <E : Enum<E>> setEnum(
-        pref: EnumPref<E>,
-        value: E,
-    ) {
-        localPrefs.edit { pref.write(this, value) }
-        remotePrefsProvider()?.edit { pref.write(this, value) }
-    }
-
-    fun <E : Enum<E>> observeEnum(pref: EnumPref<E>): Flow<E> = observe(pref) { getEnum(pref) }
-
-    fun syncLocalToRemote() {
-        val remote = remotePrefsProvider() ?: return
-        remote.edit {
-            Prefs.all.forEach { it.copyTo(localPrefs, this) }
-        }
-    }
-
-    private fun <T> observe(
-        pref: PrefSpec<*>,
-        getValue: () -> T,
-    ): Flow<T> =
+    val state: Flow<AppPrefs> =
         callbackFlow {
-            val listener =
-                SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-                    if (key == pref.key) trySend(getValue())
-                }
-            trySend(getValue())
-            localPrefs.registerOnSharedPreferenceChangeListener(listener)
-            awaitClose { localPrefs.unregisterOnSharedPreferenceChangeListener(listener) }
+            val listener = OnChangeListener { _, _ -> trySend(readAll()) }
+            local.registerOnSharedPreferenceChangeListener(listener)
+            awaitClose { local.unregisterOnSharedPreferenceChangeListener(listener) }
+        }.onStart { emit(readAll()) }
+            .distinctUntilChanged()
+
+    fun syncToRemote() {
+        val remote = remoteProvider() ?: return
+        remote.edit {
+            Prefs.all.forEach { it.copyTo(local, this) }
         }
+    }
+
+    private fun readAll() =
+        AppPrefs(
+            hideDirectShare = read(Prefs.HIDE_DIRECT_SHARE),
+            hideQuickShare = read(Prefs.HIDE_QUICK_SHARE),
+            deletionEnabled = read(Prefs.DELETION_ENABLED),
+            deletionMode = read(Prefs.DELETION_MODE),
+            deletionAction = read(Prefs.DELETION_ACTION),
+            deletionDelayMs = read(Prefs.DELETION_DELAY_MS),
+            showDeletionToast = read(Prefs.SHOW_DELETION_TOAST),
+            screenshotPattern = read(Prefs.SCREENSHOT_PATTERN),
+        )
 }

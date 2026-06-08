@@ -2,7 +2,6 @@ package eu.hxreborn.cleanshare.ui.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import eu.hxreborn.cleanshare.prefs.DeletionAction
 import eu.hxreborn.cleanshare.prefs.DeletionMode
@@ -20,34 +19,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-abstract class SettingsViewModel : ViewModel() {
-    abstract val uiState: StateFlow<SettingsUiState>
-
-    abstract fun setHideDirectShare(enabled: Boolean)
-
-    abstract fun setHideQuickShare(enabled: Boolean)
-
-    abstract fun setDeletionEnabled(enabled: Boolean)
-
-    abstract fun setDeletionMode(mode: DeletionMode)
-
-    abstract fun setDeletionAction(action: DeletionAction)
-
-    abstract fun setDeletionDelayMs(delayMs: Int)
-
-    abstract fun setShowDeletionToast(enabled: Boolean)
-
-    abstract fun setScreenshotPattern(pattern: String)
-
-    abstract fun setLauncherIconHidden(hidden: Boolean)
-
-    abstract fun syncLocalToRemote()
-}
-
-class SettingsViewModelImpl(
-    private val prefsRepository: PrefsRepository,
+class SettingsViewModel(
+    private val prefs: PrefsRepository,
     private val applicationContext: Context,
-) : SettingsViewModel() {
+) : ViewModel() {
     private val rootAvailable = MutableStateFlow(false)
     private val launcherIconHidden = MutableStateFlow(false)
 
@@ -58,30 +33,19 @@ class SettingsViewModelImpl(
         }
     }
 
-    override val uiState: StateFlow<SettingsUiState> =
-        combine(
-            prefsRepository.observeBoolean(Prefs.HIDE_DIRECT_SHARE),
-            prefsRepository.observeBoolean(Prefs.HIDE_QUICK_SHARE),
-            prefsRepository.observeBoolean(Prefs.DELETION_ENABLED),
-            prefsRepository.observeEnum(Prefs.DELETION_MODE),
-            prefsRepository.observeEnum(Prefs.DELETION_ACTION),
-            prefsRepository.observeInt(Prefs.DELETION_DELAY_MS),
-            prefsRepository.observeBoolean(Prefs.SHOW_DELETION_TOAST),
-            prefsRepository.observeString(Prefs.SCREENSHOT_PATTERN),
-            rootAvailable,
-            launcherIconHidden,
-        ) { values: Array<Any> ->
+    val uiState: StateFlow<SettingsUiState> =
+        combine(prefs.state, rootAvailable, launcherIconHidden) { app, root, iconHidden ->
             SettingsUiState.Ready(
-                hideDirectShare = values[0] as Boolean,
-                hideQuickShare = values[1] as Boolean,
-                isLauncherIconHidden = values[9] as Boolean,
-                deletionEnabled = values[2] as Boolean,
-                deletionMode = values[3] as DeletionMode,
-                deletionAction = values[4] as DeletionAction,
-                deletionDelayMs = values[5] as Int,
-                showDeletionToast = values[6] as Boolean,
-                screenshotPattern = values[7] as String,
-                isRootAvailable = values[8] as Boolean,
+                hideDirectShare = app.hideDirectShare,
+                hideQuickShare = app.hideQuickShare,
+                isLauncherIconHidden = iconHidden,
+                deletionEnabled = app.deletionEnabled,
+                deletionMode = app.deletionMode,
+                deletionAction = app.deletionAction,
+                deletionDelayMs = app.deletionDelayMs,
+                showDeletionToast = app.showDeletionToast,
+                screenshotPattern = app.screenshotPattern,
+                isRootAvailable = root,
             )
         }.stateIn(
             scope = viewModelScope,
@@ -89,52 +53,24 @@ class SettingsViewModelImpl(
             initialValue = SettingsUiState.Loading,
         )
 
-    override fun setHideDirectShare(enabled: Boolean) {
-        prefsRepository.setBoolean(Prefs.HIDE_DIRECT_SHARE, enabled)
-    }
+    fun setHideDirectShare(enabled: Boolean) = prefs.save(Prefs.HIDE_DIRECT_SHARE, enabled)
 
-    override fun setHideQuickShare(enabled: Boolean) {
-        prefsRepository.setBoolean(Prefs.HIDE_QUICK_SHARE, enabled)
-    }
+    fun setHideQuickShare(enabled: Boolean) = prefs.save(Prefs.HIDE_QUICK_SHARE, enabled)
 
-    override fun setDeletionEnabled(enabled: Boolean) {
-        prefsRepository.setBoolean(Prefs.DELETION_ENABLED, enabled)
-    }
+    fun setDeletionEnabled(enabled: Boolean) = prefs.save(Prefs.DELETION_ENABLED, enabled)
 
-    override fun setDeletionMode(mode: DeletionMode) {
-        prefsRepository.setEnum(Prefs.DELETION_MODE, mode)
-    }
+    fun setDeletionMode(mode: DeletionMode) = prefs.save(Prefs.DELETION_MODE, mode)
 
-    override fun setDeletionAction(action: DeletionAction) {
-        prefsRepository.setEnum(Prefs.DELETION_ACTION, action)
-    }
+    fun setDeletionAction(action: DeletionAction) = prefs.save(Prefs.DELETION_ACTION, action)
 
-    override fun setDeletionDelayMs(delayMs: Int) {
-        prefsRepository.setInt(Prefs.DELETION_DELAY_MS, delayMs.coerceIn(5_000, 60_000))
-    }
+    fun setDeletionDelayMs(delayMs: Int) = prefs.save(Prefs.DELETION_DELAY_MS, delayMs.coerceIn(5_000, 60_000))
 
-    override fun setShowDeletionToast(enabled: Boolean) {
-        prefsRepository.setBoolean(Prefs.SHOW_DELETION_TOAST, enabled)
-    }
+    fun setShowDeletionToast(enabled: Boolean) = prefs.save(Prefs.SHOW_DELETION_TOAST, enabled)
 
-    override fun setScreenshotPattern(pattern: String) {
-        prefsRepository.setString(Prefs.SCREENSHOT_PATTERN, pattern)
-    }
+    fun setScreenshotPattern(pattern: String) = prefs.save(Prefs.SCREENSHOT_PATTERN, pattern)
 
-    override fun setLauncherIconHidden(hidden: Boolean) {
+    fun setLauncherIconHidden(hidden: Boolean) {
         setLauncherIconVisible(applicationContext, !hidden)
         launcherIconHidden.value = hidden
     }
-
-    override fun syncLocalToRemote() {
-        prefsRepository.syncLocalToRemote()
-    }
-}
-
-class SettingsViewModelFactory(
-    private val prefsRepository: PrefsRepository,
-    private val applicationContext: Context,
-) : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T = SettingsViewModelImpl(prefsRepository, applicationContext) as T
 }

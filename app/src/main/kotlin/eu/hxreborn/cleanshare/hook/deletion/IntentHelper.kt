@@ -8,10 +8,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.provider.MediaStore
-import eu.hxreborn.cleanshare.CleanShareModule
-import eu.hxreborn.cleanshare.util.DEFAULT_SCREENSHOT_PATTERN
-import eu.hxreborn.cleanshare.util.PREFS_FILE_NAME
-import eu.hxreborn.cleanshare.util.PREF_KEY_SCREENSHOT_PATTERN
 import eu.hxreborn.cleanshare.util.QUERY_PROVIDER_AUTHORITY
 import eu.hxreborn.cleanshare.util.debugLog
 
@@ -61,7 +57,6 @@ internal fun extractImageUri(intent: Intent): Uri? {
     return uri
 }
 
-// Original media file authorities
 private val ORIGINAL_FILE_AUTHORITIES =
     setOf(
         "media",
@@ -69,25 +64,13 @@ private val ORIGINAL_FILE_AUTHORITIES =
         "com.android.providers.media.documents",
     )
 
-// SystemUI notification share
 private val SCREENSHOT_FILE_PROVIDERS =
     setOf(
         "com.android.systemui.fileprovider",
     )
 
-// Temp/edited file indicators
 private val TEMP_PATH_PATTERNS =
     listOf("/cache/", "/temp/", "edited", ".pending")
-
-private fun getScreenshotPattern(): Regex =
-    runCatching {
-        val pattern =
-            CleanShareModule.instance
-                ?.getRemotePreferences(PREFS_FILE_NAME)
-                ?.getString(PREF_KEY_SCREENSHOT_PATTERN, DEFAULT_SCREENSHOT_PATTERN)
-                ?: DEFAULT_SCREENSHOT_PATTERN
-        Regex(pattern)
-    }.getOrElse { Regex(DEFAULT_SCREENSHOT_PATTERN) }
 
 internal fun isOriginalFileUri(uri: Uri): Boolean {
     val authority = uri.authority ?: return false
@@ -110,12 +93,13 @@ internal fun isOriginalFileUri(uri: Uri): Boolean {
 internal fun getScreenshotInfo(
     activity: Activity,
     uri: Uri,
+    pattern: Regex,
 ): ScreenshotInfo? {
     if (!isOriginalFileUri(uri)) return null
 
     val authority = uri.authority
     if (authority != null && authority in SCREENSHOT_FILE_PROVIDERS) {
-        return getScreenshotInfoFromFileProvider(uri)
+        return getScreenshotInfoFromFileProvider(uri, pattern)
     }
 
     runCatching {
@@ -157,7 +141,7 @@ internal fun getScreenshotInfo(
 
                 val isMatch =
                     relativePath.contains("Screenshots", ignoreCase = true) ||
-                        name.matches(getScreenshotPattern())
+                        name.matches(pattern)
                 if (isMatch) {
                     debugLog { "isScreenshot=true" }
                     return ScreenshotInfo(filename = name, filePath = filePath)
@@ -174,10 +158,12 @@ internal fun getScreenshotInfo(
 private const val RECENCY_WINDOW_SECONDS = 15 * 60
 
 // Resolve original screenshot via IPC since IntentResolver lacks media permissions
-internal fun resolveOriginalScreenshot(activity: Activity): ScreenshotInfo? {
+internal fun resolveOriginalScreenshot(
+    activity: Activity,
+    pattern: Regex,
+): ScreenshotInfo? {
     runCatching {
         val cutoff = System.currentTimeMillis() / 1000 - RECENCY_WINDOW_SECONDS
-        val screenshotPattern = getScreenshotPattern()
 
         val where = "relative_path LIKE '%Screenshots%' AND date_added > $cutoff AND is_trashed = 0"
         val extras = Bundle().apply { putString("where", where) }
@@ -207,7 +193,7 @@ internal fun resolveOriginalScreenshot(activity: Activity): ScreenshotInfo? {
                     .orEmpty()
             val filePath = ROW_DATA_PATTERN.find(line)?.groupValues?.get(1)
 
-            if (!name.matches(screenshotPattern)) {
+            if (!name.matches(pattern)) {
                 debugLog { "resolveOriginalScreenshot: candidate name=$name (pattern miss)" }
                 continue
             }
@@ -232,9 +218,12 @@ private val ROW_ID_PATTERN = Regex("""_id=(\d+)""")
 private val ROW_NAME_PATTERN = Regex("""_display_name=([^,]+)""")
 private val ROW_DATA_PATTERN = Regex("""_data=([^,]+)""")
 
-private fun getScreenshotInfoFromFileProvider(uri: Uri): ScreenshotInfo? {
+private fun getScreenshotInfoFromFileProvider(
+    uri: Uri,
+    pattern: Regex,
+): ScreenshotInfo? {
     val filename = uri.lastPathSegment ?: return null
-    if (!filename.matches(getScreenshotPattern())) {
+    if (!filename.matches(pattern)) {
         debugLog { "FileProvider file not a screenshot: $filename" }
         return null
     }

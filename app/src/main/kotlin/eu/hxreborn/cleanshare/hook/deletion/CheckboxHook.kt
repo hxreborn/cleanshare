@@ -2,24 +2,27 @@ package eu.hxreborn.cleanshare.hook.deletion
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.Context
 import android.net.Uri
 import android.widget.CheckBox
-import androidx.core.content.edit
-import eu.hxreborn.cleanshare.CleanShareModule
+import eu.hxreborn.cleanshare.hook.deletionEnabled
+import eu.hxreborn.cleanshare.hook.deletionMode
+import eu.hxreborn.cleanshare.hook.screenshotPattern
 import eu.hxreborn.cleanshare.prefs.DeletionMode
 import eu.hxreborn.cleanshare.util.CHECKBOX_INSERT_RETRY_DELAY_MS
 import eu.hxreborn.cleanshare.util.CHECKBOX_TEXT_SIZE_SP
 import eu.hxreborn.cleanshare.util.CHECKBOX_VIEW_TAG
-import eu.hxreborn.cleanshare.util.PREFS_FILE_NAME
-import eu.hxreborn.cleanshare.util.PREF_KEY_DELETE_AFTER_SHARE
-import eu.hxreborn.cleanshare.util.PREF_KEY_DELETION_ENABLED
-import eu.hxreborn.cleanshare.util.PREF_KEY_DELETION_MODE
 import eu.hxreborn.cleanshare.util.debugLog
+import java.util.concurrent.Executors
 
 internal object CheckboxHook {
+    // Single-thread executor for MediaStore IPC. Never block the interceptor thread:
+    // the share-sheet UI thread is the caller, and IPC there causes ANR.
+    private val executor = Executors.newSingleThreadExecutor()
+
+    @Volatile private var defaultDeleteAfterShare: Boolean = false
+
     @SuppressLint("NewApi")
-    fun handleOnCreate(activity: Activity) {
+    fun onChooserCreated(activity: Activity) {
         debugLog { "onCreate hook fired" }
         ShareState.clear()
         val rawIntent = activity.intent ?: return
@@ -28,22 +31,11 @@ internal object CheckboxHook {
         val shareIntent = extractShareIntent(rawIntent) ?: return
         val uri = extractImageUri(shareIntent) ?: return
 
-        val remotePrefs =
-            runCatching {
-                CleanShareModule.instance?.getRemotePreferences(PREFS_FILE_NAME)
-            }.getOrNull() ?: return
+        if (!deletionEnabled) return
 
-        val enabled = remotePrefs.getBoolean(PREF_KEY_DELETION_ENABLED, false)
-        if (!enabled) return
+        val mode = deletionMode
 
-        val modeKey =
-            remotePrefs.getString(
-                PREF_KEY_DELETION_MODE,
-                DeletionMode.ASK_EACH_TIME.key,
-            ) ?: DeletionMode.ASK_EACH_TIME.key
-        val mode = DeletionMode.fromKey(modeKey)
-
-        val screenshotInfo = getScreenshotInfo(activity, uri)
+        val screenshotInfo = getScreenshotInfo(activity, uri, screenshotPattern)
         if (screenshotInfo != null) {
             val targetUri = screenshotInfo.resolvedUri ?: uri
             applyDeletionMode(activity, mode, targetUri, screenshotInfo)
@@ -51,13 +43,14 @@ internal object CheckboxHook {
         }
 
         if (!isOriginalFileUri(uri)) {
-            Thread {
-                val resolved = resolveOriginalScreenshot(activity) ?: return@Thread
+            executor.execute {
+                val resolved =
+                    resolveOriginalScreenshot(activity, screenshotPattern) ?: return@execute
                 val targetUri = resolved.resolvedUri ?: uri
                 activity.runOnUiThread {
                     applyDeletionMode(activity, mode, targetUri, resolved)
                 }
-            }.start()
+            }
         }
     }
 
@@ -84,8 +77,7 @@ internal object CheckboxHook {
         screenshotInfo: ScreenshotInfo,
     ) {
         runCatching {
-            val localPrefs = activity.getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE)
-            val checked = localPrefs.getBoolean(PREF_KEY_DELETE_AFTER_SHARE, false)
+            val checked = defaultDeleteAfterShare
             val isResolved = screenshotInfo.resolvedUri != null
             val label = if (isResolved) "Delete original screenshot" else "Delete after sharing"
 
@@ -97,7 +89,7 @@ internal object CheckboxHook {
                     isChecked = checked
                     setOnCheckedChangeListener { _, isChecked ->
                         ShareState.updateShouldDelete(isChecked)
-                        localPrefs.edit { putBoolean(PREF_KEY_DELETE_AFTER_SHARE, isChecked) }
+                        defaultDeleteAfterShare = isChecked
                     }
                 }
 

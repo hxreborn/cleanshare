@@ -3,6 +3,7 @@ package eu.hxreborn.cleanshare
 import android.app.Activity
 import android.app.ActivityManager
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.content.pm.ResolveInfo
 import android.content.pm.ShortcutManager
 import android.os.Build
@@ -10,9 +11,11 @@ import android.os.Bundle
 import android.util.Log
 import eu.hxreborn.cleanshare.hook.deletion.CheckboxHook
 import eu.hxreborn.cleanshare.hook.deletion.DeletionHook
+import eu.hxreborn.cleanshare.hook.deletionDelayMs
+import eu.hxreborn.cleanshare.hook.hideDirectShare
+import eu.hxreborn.cleanshare.hook.hideQuickShare
+import eu.hxreborn.cleanshare.hook.loadHookPrefs
 import eu.hxreborn.cleanshare.util.PREFS_FILE_NAME
-import eu.hxreborn.cleanshare.util.PREF_KEY_HIDE_DIRECT_SHARE
-import eu.hxreborn.cleanshare.util.PREF_KEY_HIDE_QUICK_SHARE
 import eu.hxreborn.cleanshare.util.QUICK_SHARE_ACTIVITY
 import eu.hxreborn.cleanshare.util.debugLog
 import eu.hxreborn.cleanshare.util.findClass
@@ -20,6 +23,10 @@ import eu.hxreborn.cleanshare.util.findMethodByName
 import io.github.libxposed.api.XposedModule
 import io.github.libxposed.api.XposedModuleInterface.ModuleLoadedParam
 import io.github.libxposed.api.XposedModuleInterface.PackageReadyParam
+
+@PublishedApi
+internal lateinit var module: CleanShareModule
+    private set
 
 private const val ANDROID_FRAMEWORK_PKG = "android"
 private const val INTENT_RESOLVER_PKG = "com.android.intentresolver"
@@ -41,13 +48,34 @@ private val SHARE_SHEET_PKG: String =
 class CleanShareModule : XposedModule() {
     companion object {
         const val TAG = "CleanShare"
-        var instance: CleanShareModule? = null
-            private set
     }
 
+    private var prefsListener: SharedPreferences.OnSharedPreferenceChangeListener? = null
+
     override fun onModuleLoaded(param: ModuleLoadedParam) {
-        instance = this
-        log(Log.INFO, TAG, "v${BuildConfig.VERSION_NAME} loaded in ${param.processName}")
+        module = this
+        log(
+            Log.INFO,
+            TAG,
+            "loaded version=${BuildConfig.VERSION_NAME} process=${param.processName}",
+        )
+        runCatching { getRemotePreferences(PREFS_FILE_NAME) }.getOrNull()?.let { prefs ->
+            runCatching { loadHookPrefs(prefs) }
+                .onFailure { log(Log.WARN, TAG, "prefs load failed", it) }
+            registerPrefsListener(prefs)
+        }
+    }
+
+    private fun registerPrefsListener(prefs: SharedPreferences) {
+        runCatching {
+            val listener =
+                SharedPreferences.OnSharedPreferenceChangeListener { sp, _ ->
+                    runCatching { loadHookPrefs(sp) }
+                        .onFailure { log(Log.WARN, TAG, "prefs reload failed", it) }
+                }
+            prefsListener = listener
+            prefs.registerOnSharedPreferenceChangeListener(listener)
+        }.onFailure { log(Log.WARN, TAG, "prefs listener failed", it) }
     }
 
     override fun onPackageReady(param: PackageReadyParam) {
@@ -70,14 +98,12 @@ class CleanShareModule : XposedModule() {
             val method = ActivityManager::class.java.getDeclaredMethod("isLowRamDeviceStatic")
             method.isAccessible = true
             hook(method).intercept { chain ->
-                val prefs = getRemotePreferences(PREFS_FILE_NAME)
-                val enabled = prefs.getBoolean(PREF_KEY_HIDE_DIRECT_SHARE, true)
-                debugLog { "[DirectShare] isLowRamDeviceStatic called, enabled=$enabled" }
-                if (enabled) return@intercept true
+                debugLog { "intercept low-ram enabled=$hideDirectShare" }
+                if (hideDirectShare) return@intercept true
                 chain.proceed()
             }
-            log(Log.INFO, TAG, "Hooked ActivityManager.isLowRamDeviceStatic")
-        }.onFailure { log(Log.WARN, TAG, "LowRam hook failed: ${it.message}") }
+            log(Log.INFO, TAG, "hooked low-ram")
+        }.onFailure { log(Log.WARN, TAG, "hook low-ram failed", it) }
     }
 
     // Fallback for ROMs where ART inlines isLowRamDeviceStatic() into ChooserListAdapter
@@ -87,20 +113,18 @@ class CleanShareModule : XposedModule() {
             val method = clazz.getDeclaredMethod("getServiceTargetCount")
             method.isAccessible = true
             hook(method).intercept { chain ->
-                val prefs = getRemotePreferences(PREFS_FILE_NAME)
-                val enabled = prefs.getBoolean(PREF_KEY_HIDE_DIRECT_SHARE, true)
-                debugLog { "[DirectShare] getServiceTargetCount called, enabled=$enabled" }
-                if (enabled) return@intercept 0
+                debugLog { "intercept service-target-count enabled=$hideDirectShare" }
+                if (hideDirectShare) return@intercept 0
                 chain.proceed()
             }
-            log(Log.INFO, TAG, "Hooked ChooserListAdapter.getServiceTargetCount")
-        }.onFailure { log(Log.WARN, TAG, "getServiceTargetCount hook failed: ${it.message}") }
+            log(Log.INFO, TAG, "hooked service-target-count")
+        }.onFailure { log(Log.WARN, TAG, "hook service-target-count failed", it) }
     }
 
     private fun hookScreenshotDelete(classLoader: ClassLoader) {
         val chooserClass =
             findClass(classLoader, CHOOSER_CLASS_NAMES) ?: run {
-                log(Log.WARN, TAG, "ChooserActivity not found, skipping deletion hooks")
+                log(Log.WARN, TAG, "hook chooser failed reason=class-missing")
                 return
             }
 
@@ -109,15 +133,17 @@ class CleanShareModule : XposedModule() {
             method.isAccessible = true
             hook(method).intercept { chain ->
                 chain.proceed()
-                CheckboxHook.handleOnCreate(chain.thisObject as? Activity ?: return@intercept null)
+                CheckboxHook.onChooserCreated(
+                    chain.thisObject as? Activity ?: return@intercept null,
+                )
                 null
             }
-            log(Log.INFO, TAG, "Hooked ${chooserClass.simpleName}.onCreate")
-        }.onFailure { log(Log.WARN, TAG, "Checkbox hook failed: ${it.message}") }
+            log(Log.INFO, TAG, "hooked chooser-create")
+        }.onFailure { log(Log.WARN, TAG, "hook chooser-create failed", it) }
 
         val startSelected =
             findMethodByName(chooserClass, "startSelected") ?: run {
-                log(Log.WARN, TAG, "startSelected not found on ${chooserClass.name}")
+                log(Log.WARN, TAG, "hook start-selected failed reason=method-missing")
                 return
             }
 
@@ -125,11 +151,11 @@ class CleanShareModule : XposedModule() {
             startSelected.isAccessible = true
             hook(startSelected).intercept { chain ->
                 chain.proceed()
-                DeletionHook.handleStartSelected()
+                DeletionHook.onShareStarted(deletionDelayMs)
                 null
             }
-            log(Log.INFO, TAG, "Hooked ${chooserClass.simpleName}.startSelected")
-        }.onFailure { log(Log.WARN, TAG, "Deletion hook failed: ${it.message}") }
+            log(Log.INFO, TAG, "hooked start-selected")
+        }.onFailure { log(Log.WARN, TAG, "hook start-selected failed", it) }
     }
 
     private fun hookShareTargets() {
@@ -139,14 +165,12 @@ class CleanShareModule : XposedModule() {
                     .getDeclaredMethod("getShareTargets", IntentFilter::class.java)
             method.isAccessible = true
             hook(method).intercept { chain ->
-                val prefs = getRemotePreferences(PREFS_FILE_NAME)
-                val enabled = prefs.getBoolean(PREF_KEY_HIDE_DIRECT_SHARE, true)
-                debugLog { "[DirectShare] getShareTargets called, enabled=$enabled" }
-                if (enabled) return@intercept emptyList<Any>()
+                debugLog { "intercept share-targets enabled=$hideDirectShare" }
+                if (hideDirectShare) return@intercept emptyList<Any>()
                 chain.proceed()
             }
-            log(Log.INFO, TAG, "Hooked ShortcutManager.getShareTargets")
-        }.onFailure { log(Log.WARN, TAG, "ShareTargets hook failed: ${it.message}") }
+            log(Log.INFO, TAG, "hooked share-targets")
+        }.onFailure { log(Log.WARN, TAG, "hook share-targets failed", it) }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -155,13 +179,13 @@ class CleanShareModule : XposedModule() {
             runCatching {
                 classLoader.loadClass("android.app.ApplicationPackageManager")
             }.getOrNull() ?: run {
-                log(Log.WARN, TAG, "Quick Share hook: ApplicationPackageManager not found")
+                log(Log.WARN, TAG, "hook quick-share failed reason=pm-class-missing")
                 return
             }
 
         val methods = pmClass.declaredMethods.filter { it.name == "queryIntentActivitiesAsUser" }
         if (methods.isEmpty()) {
-            log(Log.WARN, TAG, "Quick Share hook: no queryIntentActivitiesAsUser methods found")
+            log(Log.WARN, TAG, "hook quick-share failed reason=no-methods")
             return
         }
 
@@ -170,15 +194,13 @@ class CleanShareModule : XposedModule() {
                 method.isAccessible = true
                 hook(method).intercept { chain ->
                     val result = chain.proceed()
-                    val prefs = getRemotePreferences(PREFS_FILE_NAME)
-                    val enabled = prefs.getBoolean(PREF_KEY_HIDE_QUICK_SHARE, false)
-                    if (!enabled) return@intercept result
+                    if (!hideQuickShare) return@intercept result
                     val list = result as? MutableList<ResolveInfo> ?: return@intercept result
                     list.removeAll { it.activityInfo?.name == QUICK_SHARE_ACTIVITY }
                     result
                 }
             }
         }
-        log(Log.INFO, TAG, "Hooked queryIntentActivitiesAsUser (${methods.size} overloads)")
+        log(Log.INFO, TAG, "hooked quick-share overloads=${methods.size}")
     }
 }

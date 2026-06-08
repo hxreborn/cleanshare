@@ -12,7 +12,6 @@ import eu.hxreborn.cleanshare.util.RootUtils
 
 class DeletionProvider : ContentProvider() {
     companion object {
-        const val AUTHORITY = "eu.hxreborn.cleanshare.deletion"
         private const val TAG = "CleanShare"
 
         private val ALLOWED_CALLER_PACKAGES =
@@ -60,7 +59,6 @@ class DeletionProvider : ContentProvider() {
         }
         return when (method) {
             "enqueue" -> handleEnqueue(extras)
-            "cancel" -> handleCancel(extras)
             else -> bundleOf("status" to "error", "message" to "unknown method: $method")
         }
     }
@@ -102,14 +100,6 @@ class DeletionProvider : ContentProvider() {
         executor.schedule(request)
         Log.d(TAG, "Enqueued deletion: ${request.id}")
         return bundleOf("status" to "ok", "request_id" to request.id)
-    }
-
-    private fun handleCancel(extras: Bundle?): Bundle {
-        val uriString =
-            extras?.getString("uri")
-                ?: return bundleOf("status" to "error", "message" to "missing uri")
-        val canceled = queue.cancel(uriString)
-        return bundleOf("status" to if (canceled) "ok" else "not_found")
     }
 
     private fun verifyCallerAllowed(): Boolean {

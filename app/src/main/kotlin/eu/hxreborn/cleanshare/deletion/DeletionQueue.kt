@@ -91,14 +91,6 @@ internal class DeletionQueue(
         }
     }
 
-    fun cancel(uri: String): Boolean {
-        synchronized(lock) {
-            val removed = requests.removeAll { it.uri == uri && it.status == RequestStatus.PENDING }
-            if (removed) persist()
-            return removed
-        }
-    }
-
     private fun persist() {
         runCatching {
             val array = JSONArray()

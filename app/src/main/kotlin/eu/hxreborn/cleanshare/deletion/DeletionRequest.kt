@@ -15,5 +15,4 @@ internal enum class RequestStatus {
     EXECUTING,
     COMPLETED,
     FAILED,
-    CANCELED,
 }

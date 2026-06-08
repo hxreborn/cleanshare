@@ -1,0 +1,3 @@
+Fix pattern dialog losing state on screen rotation
+Hooks recover from errors without crashing the share sheet
+Kotlin 2.4, Compose BOM 2026.05, compileSdk 37

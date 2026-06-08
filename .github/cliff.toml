@@ -19,10 +19,6 @@ https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}
   {% if commit.breaking %} [**breaking**]{% endif %}\
   {% if commit.remote.username %} by @{{ commit.remote.username }}\
   {%- if commit.remote.pr_number %} in [#{{ commit.remote.pr_number }}]({{ self::remote_url() }}/pull/{{ commit.remote.pr_number }}){% endif %}{% endif %}
-{%- if commit.body %}
-
-{{ commit.body | indent(prefix="  ", first=true, blank=true) }}
-{%- endif %}
 {%- for footer in commit.footers %}
 {%- if footer.token != "Signed-off-by" and footer.token != "Co-authored-by" %}
 
@@ -72,12 +68,13 @@ commit_parsers = [
   { message = "^refactor", group = "<!-- 04 -->Refactor" },
   { message = "^[Rr]evert", group = "<!-- 05 -->Reverts" },
   { message = '^(build|chore)\(deps(-dev)?\)', skip = true },
-  { message = "^doc", skip = true },
+  { message = "^doc", group = "<!-- 07 -->Documentation" },
   { message = "^style", skip = true },
   { message = "^build", skip = true },
-  { message = "^ci", group = "<!-- 10 -->CI" },
+  { message = "^ci", skip = true },
   { message = "^test", group = "<!-- 11 -->Tests" },
   # Mute release/changelog noise only
+  { message = '^chore\(release\)', skip = true },
   { message = '^chore(\(release\))?:\s*(prepare|bump|align|v?\d+\.\d+)', skip = true },
   { message = '^release:\s*(bump|prepare|v?\d+\.\d+)', skip = true },
   { message = '^chore\(changelog\)', skip = true },

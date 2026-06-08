@@ -52,11 +52,13 @@
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
-            tools:node="remove" />
+            tools:node="remove"
+            tools:ignore="MissingClass" />
 
         <receiver
             android:name="androidx.profileinstaller.ProfileInstallReceiver"
-            tools:node="remove" />
+            tools:node="remove"
+            tools:ignore="MissingClass" />
     </application>
 
 </manifest>

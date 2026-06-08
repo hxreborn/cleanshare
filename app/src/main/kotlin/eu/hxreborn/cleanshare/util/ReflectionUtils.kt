@@ -2,7 +2,6 @@ package eu.hxreborn.cleanshare.util
 
 import java.lang.reflect.Method
 
-// Find first loadable class from candidates
 internal fun findClass(
     classLoader: ClassLoader,
     candidates: List<String>,
@@ -11,7 +10,6 @@ internal fun findClass(
         runCatching { classLoader.loadClass(name) }.getOrNull()
     }
 
-// Walk class hierarchy to find method by name regardless of visibility
 internal fun findMethodByName(
     clazz: Class<*>,
     name: String,

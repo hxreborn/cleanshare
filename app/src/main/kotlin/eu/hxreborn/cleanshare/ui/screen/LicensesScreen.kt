@@ -18,9 +18,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import com.mikepenz.aboutlibraries.ui.compose.android.produceLibraries
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import eu.hxreborn.cleanshare.R
 import eu.hxreborn.cleanshare.ui.util.drawVerticalScrollbar
@@ -55,7 +57,9 @@ fun LicensesScreen(onBack: () -> Unit) {
                     .padding(innerPadding),
         ) {
             val listState = rememberLazyListState()
+            val libraries by produceLibraries(R.raw.aboutlibraries)
             LibrariesContainer(
+                libraries = libraries,
                 modifier =
                     Modifier
                         .fillMaxSize()

@@ -2,12 +2,15 @@ plugins {
     alias(libs.plugins.agp.app)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.serialization)
-    alias(libs.plugins.aboutlibraries)
 }
 
 android {
     namespace = "eu.hxreborn.cleanshare"
-    compileSdk = 37
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 0
+        }
+    }
 
     defaultConfig {
         applicationId = "eu.hxreborn.cleanshare"
@@ -87,16 +90,6 @@ android {
 kotlin {
     jvmToolchain(21)
 }
-
-val copyAboutLibraries by tasks.registering(Copy::class) {
-    dependsOn("exportLibraryDefinitions")
-    from("build/generated/aboutLibraries/aboutlibraries.json")
-    into("build/generated/aboutLibrariesRes/raw")
-}
-android.sourceSets["main"]
-    .res.directories
-    .add("build/generated/aboutLibrariesRes")
-tasks.named("preBuild").configure { dependsOn(copyAboutLibraries) }
 
 val ktlintCli = "com.pinterest.ktlint:ktlint-cli:1.8.0"
 

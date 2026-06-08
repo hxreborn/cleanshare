@@ -85,6 +85,7 @@ jobs:
           repository: Xposed-Modules-Repo/eu.hxreborn.cleanshare
           token: ${{ secrets.XPOSED_REPO_PAT }}
           tag_name: ${{ steps.mirror_tag.outputs.mirror_tag }}
+          name: ${{ github.ref_name }}
           body: ${{ steps.changelog.outputs.content || format('Release {0}', github.ref_name) }}
           files: app/build/outputs/apk/release/app-release.apk
           fail_on_unmatched_files: true

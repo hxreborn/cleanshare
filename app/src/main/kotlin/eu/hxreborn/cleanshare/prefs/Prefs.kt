@@ -6,13 +6,15 @@ import eu.hxreborn.cleanshare.util.PREF_KEY_DELETION_ACTION
 import eu.hxreborn.cleanshare.util.PREF_KEY_DELETION_DELAY_MS
 import eu.hxreborn.cleanshare.util.PREF_KEY_DELETION_ENABLED
 import eu.hxreborn.cleanshare.util.PREF_KEY_DELETION_MODE
+import eu.hxreborn.cleanshare.util.PREF_KEY_HIDE_DIRECT_SHARE
+import eu.hxreborn.cleanshare.util.PREF_KEY_HIDE_QUICK_SHARE
 import eu.hxreborn.cleanshare.util.PREF_KEY_SCREENSHOT_PATTERN
 import eu.hxreborn.cleanshare.util.PREF_KEY_SHOW_DELETION_TOAST
 
 object Prefs {
-    val HIDE_DIRECT_SHARE = BoolPref("hide_direct_share", true)
+    val HIDE_DIRECT_SHARE = BoolPref(PREF_KEY_HIDE_DIRECT_SHARE, true)
 
-    val HIDE_QUICK_SHARE = BoolPref("hide_quick_share", false)
+    val HIDE_QUICK_SHARE = BoolPref(PREF_KEY_HIDE_QUICK_SHARE, false)
 
     val DELETION_ENABLED = BoolPref(PREF_KEY_DELETION_ENABLED, false)
 

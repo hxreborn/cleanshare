@@ -3,7 +3,6 @@ package eu.hxreborn.cleanshare.util
 internal const val PREFS_FILE_NAME = "cleanshare"
 internal const val PREF_KEY_HIDE_DIRECT_SHARE = "hide_direct_share"
 internal const val PREF_KEY_HIDE_QUICK_SHARE = "hide_quick_share"
-internal const val PREF_KEY_DELETE_AFTER_SHARE = "delete_after_share"
 internal const val PREF_KEY_DELETION_ENABLED = "deletion_enabled"
 internal const val PREF_KEY_DELETION_MODE = "deletion_mode"
 internal const val PREF_KEY_DELETION_ACTION = "deletion_action"

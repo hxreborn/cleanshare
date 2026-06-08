@@ -6,9 +6,8 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import eu.hxreborn.cleanshare.prefs.DeletionAction
+import eu.hxreborn.cleanshare.prefs.Prefs
 import eu.hxreborn.cleanshare.util.PREFS_FILE_NAME
-import eu.hxreborn.cleanshare.util.PREF_KEY_DELETION_ACTION
-import eu.hxreborn.cleanshare.util.PREF_KEY_SHOW_DELETION_TOAST
 import eu.hxreborn.cleanshare.util.RootUtils
 
 internal class DeletionExecutor(
@@ -35,12 +34,7 @@ internal class DeletionExecutor(
             return
         }
 
-        val actionKey =
-            prefs.getString(PREF_KEY_DELETION_ACTION, DeletionAction.DELETE.key)
-                ?: DeletionAction.DELETE.key
-        val action = DeletionAction.fromKey(actionKey)
-
-        when (action) {
+        when (Prefs.DELETION_ACTION.read(prefs)) {
             DeletionAction.TRASH -> {
                 executeTrash(request)
             }
@@ -94,7 +88,7 @@ internal class DeletionExecutor(
     }
 
     private fun showToast(message: String) {
-        if (!prefs.getBoolean(PREF_KEY_SHOW_DELETION_TOAST, true)) return
+        if (!Prefs.SHOW_DELETION_TOAST.read(prefs)) return
         RootUtils.showLocalToast(context, message)
     }
 

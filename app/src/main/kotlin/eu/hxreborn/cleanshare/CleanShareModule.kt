@@ -194,18 +194,21 @@ class CleanShareModule : XposedModule() {
             return
         }
 
-        methods.forEach { method ->
-            runCatching {
-                method.isAccessible = true
-                hook(method).intercept { chain ->
-                    val result = chain.proceed()
-                    if (!hideQuickShare) return@intercept result
-                    val list = result as? MutableList<ResolveInfo> ?: return@intercept result
-                    list.removeAll { it.activityInfo?.name == QUICK_SHARE_ACTIVITY }
-                    result
-                }
+        val hooked =
+            methods.count { method ->
+                runCatching {
+                    method.isAccessible = true
+                    hook(method).intercept { chain ->
+                        val result = chain.proceed()
+                        if (!hideQuickShare) return@intercept result
+                        val list = result as? MutableList<ResolveInfo> ?: return@intercept result
+                        list.removeAll { it.activityInfo?.name == QUICK_SHARE_ACTIVITY }
+                        result
+                    }
+                }.onFailure {
+                    log(Log.ERROR, TAG, "hook quick-share overload failed", it)
+                }.isSuccess
             }
-        }
-        log(Log.INFO, TAG, "hooked quick-share overloads=${methods.size}")
+        log(Log.INFO, TAG, "hooked quick-share overloads=$hooked/${methods.size}")
     }
 }

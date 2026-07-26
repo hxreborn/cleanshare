@@ -2,13 +2,13 @@ package eu.hxreborn.cleanshare.deletion
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import eu.hxreborn.cleanshare.prefs.DeletionAction
 import eu.hxreborn.cleanshare.prefs.Prefs
 import eu.hxreborn.cleanshare.util.PREFS_FILE_NAME
 import eu.hxreborn.cleanshare.util.RootUtils
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 internal class DeletionExecutor(
     private val context: Context,
@@ -16,11 +16,11 @@ internal class DeletionExecutor(
 ) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE)
-    private val handler = Handler(Looper.getMainLooper())
+    private val executor = Executors.newSingleThreadScheduledExecutor()
 
     fun schedule(request: DeletionRequest) {
         val delay = (request.scheduledAt - System.currentTimeMillis()).coerceAtLeast(0L)
-        handler.postDelayed({ execute(request) }, delay)
+        executor.schedule({ execute(request) }, delay, TimeUnit.MILLISECONDS)
     }
 
     private fun execute(request: DeletionRequest) {

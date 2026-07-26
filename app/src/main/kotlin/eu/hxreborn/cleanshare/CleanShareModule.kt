@@ -48,6 +48,7 @@ class CleanShareModule : XposedModule() {
         const val TAG = "CleanShare"
     }
 
+    private var remotePrefs: SharedPreferences? = null
     private var prefsListener: SharedPreferences.OnSharedPreferenceChangeListener? = null
 
     override fun onModuleLoaded(param: ModuleLoadedParam) {
@@ -57,7 +58,11 @@ class CleanShareModule : XposedModule() {
             TAG,
             "loaded version=${BuildConfig.VERSION_NAME} process=${param.processName}",
         )
-        runCatching { getRemotePreferences(PREFS_FILE_NAME) }.getOrNull()?.let { prefs ->
+        remotePrefs =
+            runCatching { getRemotePreferences(PREFS_FILE_NAME) }
+                .onFailure { log(Log.WARN, TAG, "remote prefs unavailable", it) }
+                .getOrNull()
+        remotePrefs?.let { prefs ->
             runCatching { loadHookPrefs(prefs) }
                 .onFailure { log(Log.WARN, TAG, "prefs load failed", it) }
             registerPrefsListener(prefs)

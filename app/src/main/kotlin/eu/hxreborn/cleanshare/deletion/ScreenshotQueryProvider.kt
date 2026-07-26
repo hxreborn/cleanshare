@@ -6,7 +6,6 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Binder
 import android.os.Bundle
-import androidx.core.os.bundleOf
 import eu.hxreborn.cleanshare.util.RootUtils
 
 class ScreenshotQueryProvider : ContentProvider() {
@@ -27,23 +26,20 @@ class ScreenshotQueryProvider : ContentProvider() {
         extras: Bundle?,
     ): Bundle {
         if (!verifyCallerAllowed()) {
-            return bundleOf("status" to "error", "message" to "unauthorized")
+            return errorResult("unauthorized")
         }
         return when (method) {
             "resolve_screenshot" -> handleResolveScreenshot(extras)
-            else -> bundleOf("status" to "error", "message" to "unknown method: $method")
+            else -> errorResult("unknown method: $method")
         }
     }
 
     private fun handleResolveScreenshot(extras: Bundle?): Bundle {
         val whereSql =
             extras?.getString("where")
-                ?: return bundleOf("status" to "error", "message" to "missing where")
+                ?: return errorResult("missing where")
         val lines = RootUtils.queryRecentScreenshots(whereSql)
-        return bundleOf(
-            "status" to "ok",
-            "lines" to lines.toTypedArray(),
-        )
+        return okResult { putStringArray("lines", lines.toTypedArray()) }
     }
 
     private fun verifyCallerAllowed(): Boolean {

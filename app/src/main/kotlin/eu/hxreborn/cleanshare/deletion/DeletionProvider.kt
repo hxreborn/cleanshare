@@ -7,8 +7,8 @@ import android.net.Uri
 import android.os.Binder
 import android.os.Bundle
 import android.util.Log
-import androidx.core.os.bundleOf
 import eu.hxreborn.cleanshare.util.RootUtils
+import java.util.UUID
 
 class DeletionProvider : ContentProvider() {
     companion object {
@@ -55,26 +55,26 @@ class DeletionProvider : ContentProvider() {
     ): Bundle {
         if (!verifyCallerAllowed()) {
             Log.d(TAG, "Caller rejected: uid=${Binder.getCallingUid()}")
-            return bundleOf("status" to "error", "message" to "unauthorized")
+            return errorResult("unauthorized")
         }
         return when (method) {
             "enqueue" -> handleEnqueue(extras)
-            else -> bundleOf("status" to "error", "message" to "unknown method: $method")
+            else -> errorResult("unknown method: $method")
         }
     }
 
     private fun handleEnqueue(extras: Bundle?): Bundle {
         val uriString =
             extras?.getString("uri")
-                ?: return bundleOf("status" to "error", "message" to "missing uri")
+                ?: return errorResult("missing uri")
 
         val uri =
             runCatching { Uri.parse(uriString) }.getOrNull()
-                ?: return bundleOf("status" to "error", "message" to "invalid uri")
+                ?: return errorResult("invalid uri")
 
         if (!isValidDeletionUri(uri)) {
             Log.d(TAG, "Validation failed: invalid uri")
-            return bundleOf("status" to "error", "message" to "invalid uri")
+            return errorResult("invalid uri")
         }
 
         val displayFilename = extras.getString("filename") ?: uri.lastPathSegment ?: "file"
@@ -84,10 +84,7 @@ class DeletionProvider : ContentProvider() {
 
         val request =
             DeletionRequest(
-                id =
-                    java.util.UUID
-                        .randomUUID()
-                        .toString(),
+                id = UUID.randomUUID().toString(),
                 uri = uriString,
                 filePath = filePath,
                 filename = displayFilename,
@@ -99,7 +96,7 @@ class DeletionProvider : ContentProvider() {
         queue.enqueue(request)
         executor.schedule(request)
         Log.d(TAG, "Enqueued deletion: ${request.id}")
-        return bundleOf("status" to "ok", "request_id" to request.id)
+        return okResult { putString("request_id", request.id) }
     }
 
     private fun verifyCallerAllowed(): Boolean {

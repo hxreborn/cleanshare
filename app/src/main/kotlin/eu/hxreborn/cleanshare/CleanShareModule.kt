@@ -77,6 +77,7 @@ class CleanShareModule : XposedModule() {
     }
 
     override fun onPackageReady(param: PackageReadyParam) {
+        if (!param.isFirstPackage) return
         when (param.packageName) {
             // The unbundled chooser has android:enabled="false" on Android 13
             // https://android.googlesource.com/platform/packages/modules/IntentResolver/+/android13-qpr1-release/AndroidManifest.xml

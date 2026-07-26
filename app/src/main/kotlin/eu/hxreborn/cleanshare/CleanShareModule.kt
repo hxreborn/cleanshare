@@ -109,14 +109,14 @@ class CleanShareModule : XposedModule() {
                 chain.proceed()
             }
             log(Log.INFO, TAG, "hooked low-ram")
-        }.onFailure { log(Log.WARN, TAG, "hook low-ram failed", it) }
+        }.onFailure { log(Log.ERROR, TAG, "hook low-ram failed", it) }
     }
 
     // Fallback for ROMs where ART inlines isLowRamDeviceStatic() into ChooserListAdapter
     private fun hookServiceTargetCountFallback(classLoader: ClassLoader) {
         val clazz =
             findClass(classLoader, CHOOSER_ADAPTER_CLASS_NAMES) ?: run {
-                log(Log.WARN, TAG, "hook service-target-count failed reason=class-missing")
+                log(Log.ERROR, TAG, "hook service-target-count failed reason=class-missing")
                 return
             }
         runCatching {
@@ -128,13 +128,13 @@ class CleanShareModule : XposedModule() {
                 chain.proceed()
             }
             log(Log.INFO, TAG, "hooked service-target-count")
-        }.onFailure { log(Log.WARN, TAG, "hook service-target-count failed", it) }
+        }.onFailure { log(Log.ERROR, TAG, "hook service-target-count failed", it) }
     }
 
     private fun hookScreenshotDelete(classLoader: ClassLoader) {
         val chooserClass =
             findClass(classLoader, CHOOSER_CLASS_NAMES) ?: run {
-                log(Log.WARN, TAG, "hook chooser failed reason=class-missing")
+                log(Log.ERROR, TAG, "hook chooser failed reason=class-missing")
                 return
             }
 
@@ -149,11 +149,11 @@ class CleanShareModule : XposedModule() {
                 null
             }
             log(Log.INFO, TAG, "hooked chooser-create")
-        }.onFailure { log(Log.WARN, TAG, "hook chooser-create failed", it) }
+        }.onFailure { log(Log.ERROR, TAG, "hook chooser-create failed", it) }
 
         val startSelected =
             findMethodByName(chooserClass, "startSelected") ?: run {
-                log(Log.WARN, TAG, "hook start-selected failed reason=method-missing")
+                log(Log.ERROR, TAG, "hook start-selected failed reason=method-missing")
                 return
             }
 
@@ -165,7 +165,7 @@ class CleanShareModule : XposedModule() {
                 null
             }
             log(Log.INFO, TAG, "hooked start-selected")
-        }.onFailure { log(Log.WARN, TAG, "hook start-selected failed", it) }
+        }.onFailure { log(Log.ERROR, TAG, "hook start-selected failed", it) }
     }
 
     private fun hookShareTargets() {
@@ -180,7 +180,7 @@ class CleanShareModule : XposedModule() {
                 chain.proceed()
             }
             log(Log.INFO, TAG, "hooked share-targets")
-        }.onFailure { log(Log.WARN, TAG, "hook share-targets failed", it) }
+        }.onFailure { log(Log.ERROR, TAG, "hook share-targets failed", it) }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -189,13 +189,13 @@ class CleanShareModule : XposedModule() {
             runCatching {
                 classLoader.loadClass("android.app.ApplicationPackageManager")
             }.getOrNull() ?: run {
-                log(Log.WARN, TAG, "hook quick-share failed reason=pm-class-missing")
+                log(Log.ERROR, TAG, "hook quick-share failed reason=pm-class-missing")
                 return
             }
 
         val methods = pmClass.declaredMethods.filter { it.name == "queryIntentActivitiesAsUser" }
         if (methods.isEmpty()) {
-            log(Log.WARN, TAG, "hook quick-share failed reason=no-methods")
+            log(Log.ERROR, TAG, "hook quick-share failed reason=no-methods")
             return
         }
 

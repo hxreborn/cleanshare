@@ -1,11 +1,14 @@
 # CleanShare
 
-Xposed module that removes Direct Share's suggested contact/conversation shortcuts
-from Android's Share Sheet.
+<p align="center">
+  Xposed module that removes Direct Share's suggested contact/conversation shortcuts from Android's Share Sheet.
+</p>
 
-![Android CI](https://github.com/hxreborn/cleanshare/actions/workflows/android.yml/badge.svg)
-![Kotlin](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhxreborn%2Fcleanshare%2Fmain%2Fgradle%2Flibs.versions.toml&query=%24.versions.kotlin&label=Kotlin&color=7F52FF&style=flat&logo=kotlin&logoColor=white)
-![Android](https://img.shields.io/badge/API-30%2B-3DDC84?logo=android&logoColor=white)
+<p align="center">
+  <img src="https://github.com/hxreborn/cleanshare/actions/workflows/android.yml/badge.svg" alt="Android CI" />
+  <img src="https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhxreborn%2Fcleanshare%2Fmain%2Fgradle%2Flibs.versions.toml&amp;query=%24.versions.kotlin&amp;label=Kotlin&amp;color=7F52FF&amp;style=flat&amp;logo=kotlin&amp;logoColor=white" alt="Kotlin" />
+  <img src="https://img.shields.io/badge/API-30%2B-3DDC84?logo=android&amp;logoColor=white" alt="Android API 30+" />
+</p>
 
 <div align="center">
   <img src=".github/assets/direct-share-targets.png" alt="Direct Share targets row removed" width="320" />

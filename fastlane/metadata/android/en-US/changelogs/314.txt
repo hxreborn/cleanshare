@@ -1,0 +1,4 @@
+Fix module not working on ROMs with the legacy share sheet
+Run deletion scheduling and root commands in the background
+Log hook failures as errors in the Xposed log
+Update Kotlin, Compose and Navigation dependencies

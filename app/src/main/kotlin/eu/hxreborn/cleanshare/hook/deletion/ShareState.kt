@@ -3,7 +3,11 @@ package eu.hxreborn.cleanshare.hook.deletion
 import android.app.Activity
 import android.net.Uri
 import java.lang.ref.WeakReference
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicReference
+
+// MediaStore and provider IPC stay off the share-sheet main thread
+internal val shareIoExecutor = Executors.newSingleThreadExecutor()
 
 data class PendingDeletion(
     val uri: Uri,

@@ -7,6 +7,10 @@ updates:
       interval: "monthly"
     labels:
       - "dependencies"
+    ignore:
+      # API 102 only adds hot reload, which this module does not use
+      - dependency-name: "io.github.libxposed:*"
+        update-types: ["version-update:semver-major"]
     groups:
       compose:
         patterns:

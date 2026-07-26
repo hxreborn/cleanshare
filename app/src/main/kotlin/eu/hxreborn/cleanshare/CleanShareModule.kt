@@ -6,7 +6,6 @@ import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.ResolveInfo
 import android.content.pm.ShortcutManager
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import eu.hxreborn.cleanshare.hook.deletion.CheckboxHook
@@ -38,12 +37,11 @@ private val CHOOSER_CLASS_NAMES =
         "com.android.internal.app.ChooserActivity",
     )
 
-private val SHARE_SHEET_PKG: String =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        INTENT_RESOLVER_PKG
-    } else {
-        ANDROID_FRAMEWORK_PKG
-    }
+private val CHOOSER_ADAPTER_CLASS_NAMES =
+    listOf(
+        "com.android.intentresolver.ChooserListAdapter",
+        "com.android.internal.app.ChooserListAdapter",
+    )
 
 class CleanShareModule : XposedModule() {
     companion object {
@@ -78,9 +76,10 @@ class CleanShareModule : XposedModule() {
         }.onFailure { log(Log.WARN, TAG, "prefs listener failed", it) }
     }
 
+    // Android 13 hosts the chooser in android:ui when CHOOSER_UNBUNDLED is off, so hook both
     override fun onPackageReady(param: PackageReadyParam) {
         when (param.packageName) {
-            SHARE_SHEET_PKG -> {
+            ANDROID_FRAMEWORK_PKG, INTENT_RESOLVER_PKG -> {
                 hookLowRam()
                 hookServiceTargetCountFallback(param.classLoader)
                 hookScreenshotDelete(param.classLoader)
@@ -108,8 +107,12 @@ class CleanShareModule : XposedModule() {
 
     // Fallback for ROMs where ART inlines isLowRamDeviceStatic() into ChooserListAdapter
     private fun hookServiceTargetCountFallback(classLoader: ClassLoader) {
+        val clazz =
+            findClass(classLoader, CHOOSER_ADAPTER_CLASS_NAMES) ?: run {
+                log(Log.WARN, TAG, "hook service-target-count failed reason=class-missing")
+                return
+            }
         runCatching {
-            val clazz = classLoader.loadClass("com.android.intentresolver.ChooserListAdapter")
             val method = clazz.getDeclaredMethod("getServiceTargetCount")
             method.isAccessible = true
             hook(method).intercept { chain ->

@@ -13,6 +13,8 @@
     <string name="pref_hide_direct_share_summary">Removes the suggested contacts row from the system share sheet</string>
     <string name="pref_hide_quick_share_title">Hide Quick Share</string>
     <string name="pref_hide_quick_share_summary">Removes Google Quick Share from the list of sharing options</string>
+    <string name="pref_app_filter_title">Filter Apps</string>
+    <string name="pref_app_filter_summary_off">Choose which apps can appear in the share sheet</string>
     <plurals name="pref_app_filter_summary_block">
         <item quantity="one">%d app hidden from share sheet</item>
         <item quantity="other">%d apps hidden from share sheet</item>
@@ -25,6 +27,14 @@
     <string name="app_filter_mode_allow">Show only selected</string>
     <string name="app_filter_none_block">No apps hidden. All apps shown in share sheet</string>
     <string name="app_filter_none_allow">No apps selected. All apps shown in share sheet</string>
+    <string name="app_filter_search_hint">Search apps</string>
+    <string name="app_filter_clear">Clear selection</string>
+    <string name="app_filter_clear_search">Clear search</string>
+    <string name="app_filter_hide_system">Hide system apps</string>
+    <string name="app_filter_clear_filters">Clear filters</string>
+    <string name="app_filter_refresh">Refresh app list</string>
+    <string name="app_filter_empty">No apps match your filters</string>
+    <string name="app_filter_empty_none">No share targets found</string>
     <string name="pref_hide_launcher_icon_title">Hide Launcher Icon</string>
     <string name="pref_hide_launcher_icon_summary">Hides app from launcher. You can still open it from your Xposed manager, such as LSPosed or Vector</string>
 
@@ -67,4 +77,5 @@
 
     <!-- Actions -->
     <string name="back">Back</string>
+    <string name="more_options">More options</string>
 </resources>

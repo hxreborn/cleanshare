@@ -9,5 +9,8 @@ sealed interface Screen : NavKey {
     data object Settings : Screen
 
     @Serializable
+    data object AppFilter : Screen
+
+    @Serializable
     data object Licenses : Screen
 }

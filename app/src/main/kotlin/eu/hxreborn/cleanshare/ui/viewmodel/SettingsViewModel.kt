@@ -3,6 +3,7 @@ package eu.hxreborn.cleanshare.ui.viewmodel
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import eu.hxreborn.cleanshare.prefs.AppFilterMode
 import eu.hxreborn.cleanshare.prefs.DeletionAction
 import eu.hxreborn.cleanshare.prefs.DeletionMode
 import eu.hxreborn.cleanshare.prefs.Prefs
@@ -46,6 +47,8 @@ class SettingsViewModel(
                 showDeletionToast = app.showDeletionToast,
                 screenshotPattern = app.screenshotPattern,
                 isRootAvailable = root,
+                appFilterMode = app.appFilterMode,
+                filteredApps = app.filteredApps,
             )
         }.stateIn(
             scope = viewModelScope,
@@ -68,6 +71,10 @@ class SettingsViewModel(
     fun setShowDeletionToast(enabled: Boolean) = prefs.save(Prefs.SHOW_DELETION_TOAST, enabled)
 
     fun setScreenshotPattern(pattern: String) = prefs.save(Prefs.SCREENSHOT_PATTERN, pattern)
+
+    fun setAppFilterMode(mode: AppFilterMode) = prefs.save(Prefs.APP_FILTER_MODE, mode)
+
+    fun setFilteredApps(packages: Set<String>) = prefs.save(Prefs.FILTERED_APPS, packages)
 
     fun setLauncherIconHidden(hidden: Boolean) {
         setLauncherIconVisible(applicationContext, !hidden)

@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.SpeakerNotes
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.FolderDelete
 import androidx.compose.material.icons.outlined.Gavel
 import androidx.compose.material.icons.outlined.NearbyOff
@@ -62,6 +63,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -69,6 +71,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import eu.hxreborn.cleanshare.BuildConfig
 import eu.hxreborn.cleanshare.R
+import eu.hxreborn.cleanshare.prefs.AppFilterMode
 import eu.hxreborn.cleanshare.prefs.DeletionAction
 import eu.hxreborn.cleanshare.prefs.DeletionMode
 import eu.hxreborn.cleanshare.ui.state.SettingsUiState
@@ -89,6 +92,7 @@ private const val ISSUES_URL = "https://github.com/hxreborn/cleanshare/issues/ne
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,
+    onNavigateToAppFilter: () -> Unit,
     onNavigateToLicenses: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -139,6 +143,7 @@ fun SettingsScreen(
                     onDeletionDelayChange = viewModel::setDeletionDelayMs,
                     onShowDeletionToastChange = viewModel::setShowDeletionToast,
                     onScreenshotPatternChange = viewModel::setScreenshotPattern,
+                    onAppFilterClick = onNavigateToAppFilter,
                     onLicensesClick = onNavigateToLicenses,
                 )
             }
@@ -160,6 +165,7 @@ private fun SettingsContent(
     onDeletionDelayChange: (Int) -> Unit,
     onShowDeletionToastChange: (Boolean) -> Unit,
     onScreenshotPatternChange: (String) -> Unit,
+    onAppFilterClick: () -> Unit,
     onLicensesClick: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -200,7 +206,7 @@ private fun SettingsContent(
                 title = { Text(stringResource(R.string.pref_category_features)) },
             )
 
-            val featureItemCount = 3
+            val featureItemCount = 4
             val hideDirectShareShape = shapeForPosition(featureItemCount, 0)
             switchPreference(
                 modifier = Modifier.preferenceCell(hideDirectShareShape, surface),
@@ -251,7 +257,29 @@ private fun SettingsContent(
 
             item { Spacer(Modifier.height(2.dp)) }
 
-            val hideLauncherIconShape = shapeForPosition(featureItemCount, 2)
+            val appFilterShape = shapeForPosition(featureItemCount, 2)
+            preference(
+                modifier = Modifier.preferenceCell(appFilterShape, surface),
+                key = "app_filter",
+                icon = {
+                    Icon(
+                        imageVector = Icons.Outlined.FilterList,
+                        contentDescription = null,
+                    )
+                },
+                title = {
+                    Text(
+                        text = stringResource(R.string.pref_app_filter_title),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                },
+                summary = { Text(text = appFilterSummary(state.appFilterMode, state.filteredApps.size)) },
+                onClick = onAppFilterClick,
+            )
+
+            item { Spacer(Modifier.height(2.dp)) }
+
+            val hideLauncherIconShape = shapeForPosition(featureItemCount, 3)
             switchPreference(
                 modifier = Modifier.preferenceCell(hideLauncherIconShape, surface),
                 key = "hide_launcher_icon",
@@ -516,6 +544,16 @@ private fun SettingsContent(
         }
     }
 }
+
+@Composable
+private fun appFilterSummary(
+    mode: AppFilterMode,
+    count: Int,
+): String =
+    when (count) {
+        0 -> stringResource(R.string.pref_app_filter_summary_off)
+        else -> pluralStringResource(mode.countSummaryRes, count, count)
+    }
 
 @Composable
 private fun <T> SegmentedPreferenceItem(

@@ -16,6 +16,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import eu.hxreborn.cleanshare.App
 import eu.hxreborn.cleanshare.ui.navigation.Screen
+import eu.hxreborn.cleanshare.ui.screen.AppFilterScreen
 import eu.hxreborn.cleanshare.ui.screen.LicensesScreen
 import eu.hxreborn.cleanshare.ui.screen.SettingsScreen
 import eu.hxreborn.cleanshare.ui.theme.CleanShareTheme
@@ -57,7 +58,14 @@ class MainActivity : ComponentActivity() {
                             entry<Screen.Settings> {
                                 SettingsScreen(
                                     viewModel = viewModel,
+                                    onNavigateToAppFilter = { backStack.add(Screen.AppFilter) },
                                     onNavigateToLicenses = { backStack.add(Screen.Licenses) },
+                                )
+                            }
+                            entry<Screen.AppFilter> {
+                                AppFilterScreen(
+                                    viewModel = viewModel,
+                                    onBack = { backStack.removeLastOrNull() },
                                 )
                             }
                             entry<Screen.Licenses> {

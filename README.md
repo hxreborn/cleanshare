@@ -33,6 +33,7 @@ it also blocks backend shortcut queries to prevent share target profiling.
 - Hide Direct Share suggestions from the share sheet
 - Block share target profiling via Android System Intelligence
 - Hide Quick Share / Nearby Share from share sheet results
+- Filter share targets: hide selected apps, or show only the ones you pick
 - Delete shared screenshots after sharing with configurable delay (root required)
 - Move to trash or permanently delete
 - Built-in settings app with Material 3 UI

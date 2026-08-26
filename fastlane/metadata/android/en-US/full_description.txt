@@ -4,6 +4,7 @@
 <ul>
 <li>Hide Direct Share suggestions and block share target profiling</li>
 <li>Hide Quick Share / Nearby Share</li>
+<li>Filter share targets: hide the apps you pick, or show only them</li>
 <li>Delete shared screenshots after sharing (root required)</li>
 <li>Built-in settings app</li>
 </ul>

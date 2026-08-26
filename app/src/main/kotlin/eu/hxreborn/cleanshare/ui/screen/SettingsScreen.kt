@@ -169,7 +169,7 @@ private fun SettingsContent(
     onLicensesClick: () -> Unit,
 ) {
     val context = LocalContext.current
-    val surface = MaterialTheme.colorScheme.surfaceVariant
+    val surface = MaterialTheme.colorScheme.surfaceContainerHigh
     var showPatternDialog by rememberSaveable { mutableStateOf(false) }
 
     if (showPatternDialog) {

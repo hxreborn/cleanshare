@@ -2,10 +2,12 @@ package eu.hxreborn.cleanshare.prefs
 
 import eu.hxreborn.cleanshare.util.DEFAULT_DELETION_DELAY_MS
 import eu.hxreborn.cleanshare.util.DEFAULT_SCREENSHOT_PATTERN
+import eu.hxreborn.cleanshare.util.PREF_KEY_APP_FILTER_MODE
 import eu.hxreborn.cleanshare.util.PREF_KEY_DELETION_ACTION
 import eu.hxreborn.cleanshare.util.PREF_KEY_DELETION_DELAY_MS
 import eu.hxreborn.cleanshare.util.PREF_KEY_DELETION_ENABLED
 import eu.hxreborn.cleanshare.util.PREF_KEY_DELETION_MODE
+import eu.hxreborn.cleanshare.util.PREF_KEY_FILTERED_APPS
 import eu.hxreborn.cleanshare.util.PREF_KEY_HIDE_DIRECT_SHARE
 import eu.hxreborn.cleanshare.util.PREF_KEY_HIDE_QUICK_SHARE
 import eu.hxreborn.cleanshare.util.PREF_KEY_SCREENSHOT_PATTERN
@@ -40,6 +42,16 @@ object Prefs {
 
     val SHOW_DELETION_TOAST = BoolPref(PREF_KEY_SHOW_DELETION_TOAST, true)
 
+    val APP_FILTER_MODE =
+        EnumPref(
+            PREF_KEY_APP_FILTER_MODE,
+            AppFilterMode.BLOCK,
+            AppFilterMode::fromKey,
+            { it.key },
+        )
+
+    val FILTERED_APPS = StringSetPref(PREF_KEY_FILTERED_APPS, emptySet())
+
     val all: List<PrefSpec<*>> =
         listOf(
             HIDE_DIRECT_SHARE,
@@ -50,5 +62,7 @@ object Prefs {
             DELETION_DELAY_MS,
             SCREENSHOT_PATTERN,
             SHOW_DELETION_TOAST,
+            APP_FILTER_MODE,
+            FILTERED_APPS,
         )
 }

@@ -18,6 +18,8 @@ data class AppPrefs(
     val deletionDelayMs: Int,
     val showDeletionToast: Boolean,
     val screenshotPattern: String,
+    val appFilterMode: AppFilterMode,
+    val filteredApps: Set<String>,
 )
 
 class PrefsRepository(
@@ -59,5 +61,7 @@ class PrefsRepository(
             deletionDelayMs = read(Prefs.DELETION_DELAY_MS),
             showDeletionToast = read(Prefs.SHOW_DELETION_TOAST),
             screenshotPattern = read(Prefs.SCREENSHOT_PATTERN),
+            appFilterMode = read(Prefs.APP_FILTER_MODE),
+            filteredApps = read(Prefs.FILTERED_APPS),
         )
 }

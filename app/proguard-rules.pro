@@ -17,6 +17,7 @@
 
 -keepclassmembers enum eu.hxreborn.cleanshare.deletion.RequestStatus { *; }
 -keepclassmembers enum eu.hxreborn.cleanshare.prefs.DeletionMode { *; }
+-keepclassmembers enum eu.hxreborn.cleanshare.prefs.AppFilterMode { *; }
 
 -assumenosideeffects class kotlin.jvm.internal.Intrinsics {
     public static void check*(...);

@@ -9,6 +9,8 @@ internal const val PREF_KEY_DELETION_ACTION = "deletion_action"
 internal const val PREF_KEY_DELETION_DELAY_MS = "deletion_delay_ms"
 internal const val PREF_KEY_SCREENSHOT_PATTERN = "screenshot_pattern"
 internal const val PREF_KEY_SHOW_DELETION_TOAST = "show_deletion_toast"
+internal const val PREF_KEY_APP_FILTER_MODE = "app_filter_mode"
+internal const val PREF_KEY_FILTERED_APPS = "filtered_apps"
 
 internal const val DEFAULT_DELETION_DELAY_MS = 15_000
 internal const val DEFAULT_SCREENSHOT_PATTERN = "[Ss]creenshot[_-]\\d{8}[_-]\\d{6}.*"

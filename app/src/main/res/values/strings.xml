@@ -5,6 +5,7 @@
 
     <!-- Settings categories -->
     <string name="pref_category_features">Share Sheet</string>
+    <string name="pref_category_general">General</string>
     <string name="pref_category_deletion">Screenshot Cleanup</string>
     <string name="pref_category_about">About</string>
 

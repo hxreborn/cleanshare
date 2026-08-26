@@ -206,7 +206,7 @@ private fun SettingsContent(
                 title = { Text(stringResource(R.string.pref_category_features)) },
             )
 
-            val featureItemCount = 4
+            val featureItemCount = 3
             val hideDirectShareShape = shapeForPosition(featureItemCount, 0)
             switchPreference(
                 modifier = Modifier.preferenceCell(hideDirectShareShape, surface),
@@ -275,31 +275,6 @@ private fun SettingsContent(
                 },
                 summary = { Text(text = appFilterSummary(state.appFilterMode, state.filteredApps.size)) },
                 onClick = onAppFilterClick,
-            )
-
-            item { Spacer(Modifier.height(2.dp)) }
-
-            val hideLauncherIconShape = shapeForPosition(featureItemCount, 3)
-            switchPreference(
-                modifier = Modifier.preferenceCell(hideLauncherIconShape, surface),
-                key = "hide_launcher_icon",
-                value = state.isLauncherIconHidden,
-                icon = {
-                    Icon(
-                        imageVector = Icons.Outlined.PhonelinkErase,
-                        contentDescription = null,
-                    )
-                },
-                title = {
-                    Text(
-                        text = stringResource(R.string.pref_hide_launcher_icon_title),
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                },
-                summary = {
-                    Text(text = stringResource(R.string.pref_hide_launcher_icon_summary))
-                },
-                onValueChange = onLauncherIconHiddenChange,
             )
 
             preferenceCategory(
@@ -431,6 +406,34 @@ private fun SettingsContent(
                     onClick = { showPatternDialog = true },
                 )
             }
+
+            preferenceCategory(
+                key = "general",
+                title = { Text(stringResource(R.string.pref_category_general)) },
+            )
+
+            val hideLauncherIconShape = shapeForPosition(1, 0)
+            switchPreference(
+                modifier = Modifier.preferenceCell(hideLauncherIconShape, surface),
+                key = "hide_launcher_icon",
+                value = state.isLauncherIconHidden,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Outlined.PhonelinkErase,
+                        contentDescription = null,
+                    )
+                },
+                title = {
+                    Text(
+                        text = stringResource(R.string.pref_hide_launcher_icon_title),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                },
+                summary = {
+                    Text(text = stringResource(R.string.pref_hide_launcher_icon_summary))
+                },
+                onValueChange = onLauncherIconHiddenChange,
+            )
 
             preferenceCategory(
                 key = "about",

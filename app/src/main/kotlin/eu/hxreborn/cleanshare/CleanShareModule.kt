@@ -2,6 +2,7 @@ package eu.hxreborn.cleanshare
 
 import android.app.Activity
 import android.app.ActivityManager
+import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.ResolveInfo
@@ -11,8 +12,10 @@ import android.util.Log
 import eu.hxreborn.cleanshare.hook.deletion.CheckboxHook
 import eu.hxreborn.cleanshare.hook.deletion.DeletionHook
 import eu.hxreborn.cleanshare.hook.deletionDelayMs
+import eu.hxreborn.cleanshare.hook.filteredApps
 import eu.hxreborn.cleanshare.hook.hideDirectShare
 import eu.hxreborn.cleanshare.hook.hideQuickShare
+import eu.hxreborn.cleanshare.hook.isAppFiltered
 import eu.hxreborn.cleanshare.hook.loadHookPrefs
 import eu.hxreborn.cleanshare.util.PREFS_FILE_NAME
 import eu.hxreborn.cleanshare.util.QUICK_SHARE_ACTIVITY
@@ -30,6 +33,12 @@ internal lateinit var module: CleanShareModule
 private const val ANDROID_FRAMEWORK_PKG = "android"
 private const val INTENT_RESOLVER_PKG = "com.android.intentresolver"
 private const val AIAI_PKG = "com.google.android.as"
+
+private fun isShareIntent(arg: Any?): Boolean =
+    when ((arg as? Intent)?.action) {
+        Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE -> true
+        else -> false
+    }
 
 private val CHOOSER_CLASS_NAMES =
     listOf(
@@ -90,7 +99,7 @@ class CleanShareModule : XposedModule() {
                 hookLowRam()
                 hookServiceTargetCountFallback(param.classLoader)
                 hookScreenshotDelete(param.classLoader)
-                hookQuickShareFilter(param.classLoader)
+                hookTargetFilter(param.classLoader)
             }
 
             AIAI_PKG -> {
@@ -184,18 +193,18 @@ class CleanShareModule : XposedModule() {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun hookQuickShareFilter(classLoader: ClassLoader) {
+    private fun hookTargetFilter(classLoader: ClassLoader) {
         val pmClass =
             runCatching {
                 classLoader.loadClass("android.app.ApplicationPackageManager")
             }.getOrNull() ?: run {
-                log(Log.ERROR, TAG, "hook quick-share failed reason=pm-class-missing")
+                log(Log.ERROR, TAG, "hook target-filter failed reason=pm-class-missing")
                 return
             }
 
         val methods = pmClass.declaredMethods.filter { it.name == "queryIntentActivitiesAsUser" }
         if (methods.isEmpty()) {
-            log(Log.ERROR, TAG, "hook quick-share failed reason=no-methods")
+            log(Log.ERROR, TAG, "hook target-filter failed reason=no-methods")
             return
         }
 
@@ -205,15 +214,19 @@ class CleanShareModule : XposedModule() {
                     method.isAccessible = true
                     hook(method).intercept { chain ->
                         val result = chain.proceed()
-                        if (!hideQuickShare) return@intercept result
                         val list = result as? MutableList<ResolveInfo> ?: return@intercept result
-                        list.removeAll { it.activityInfo?.name == QUICK_SHARE_ACTIVITY }
+                        if (hideQuickShare) {
+                            list.removeAll { it.activityInfo?.name == QUICK_SHARE_ACTIVITY }
+                        }
+                        if (filteredApps.isNotEmpty() && isShareIntent(chain.args.firstOrNull())) {
+                            list.removeAll { isAppFiltered(it.activityInfo?.packageName) }
+                        }
                         result
                     }
                 }.onFailure {
-                    log(Log.ERROR, TAG, "hook quick-share overload failed", it)
+                    log(Log.ERROR, TAG, "hook target-filter overload failed", it)
                 }.isSuccess
             }
-        log(Log.INFO, TAG, "hooked quick-share overloads=$hooked/${methods.size}")
+        log(Log.INFO, TAG, "hooked target-filter overloads=$hooked/${methods.size}")
     }
 }

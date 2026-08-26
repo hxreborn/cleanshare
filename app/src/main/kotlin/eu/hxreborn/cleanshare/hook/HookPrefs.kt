@@ -1,6 +1,7 @@
 package eu.hxreborn.cleanshare.hook
 
 import android.content.SharedPreferences
+import eu.hxreborn.cleanshare.prefs.AppFilterMode
 import eu.hxreborn.cleanshare.prefs.DeletionMode
 import eu.hxreborn.cleanshare.prefs.Prefs
 import eu.hxreborn.cleanshare.util.DEFAULT_DELETION_DELAY_MS
@@ -18,6 +19,18 @@ import eu.hxreborn.cleanshare.util.DEFAULT_SCREENSHOT_PATTERN
 
 @Volatile internal var screenshotPattern: Regex = Regex(DEFAULT_SCREENSHOT_PATTERN)
 
+@Volatile internal var appFilterMode: AppFilterMode = AppFilterMode.BLOCK
+
+@Volatile internal var filteredApps: Set<String> = emptySet()
+
+internal fun isAppFiltered(packageName: String?): Boolean {
+    if (packageName == null || filteredApps.isEmpty()) return false
+    return when (appFilterMode) {
+        AppFilterMode.BLOCK -> packageName in filteredApps
+        AppFilterMode.ALLOW -> packageName !in filteredApps
+    }
+}
+
 internal fun loadHookPrefs(prefs: SharedPreferences) {
     hideDirectShare = Prefs.HIDE_DIRECT_SHARE.read(prefs)
     hideQuickShare = Prefs.HIDE_QUICK_SHARE.read(prefs)
@@ -27,4 +40,6 @@ internal fun loadHookPrefs(prefs: SharedPreferences) {
     screenshotPattern =
         runCatching { Regex(Prefs.SCREENSHOT_PATTERN.read(prefs)) }
             .getOrElse { Regex(DEFAULT_SCREENSHOT_PATTERN) }
+    appFilterMode = Prefs.APP_FILTER_MODE.read(prefs)
+    filteredApps = Prefs.FILTERED_APPS.read(prefs)
 }

@@ -14,7 +14,7 @@
     <string name="pref_hide_quick_share_title">Hide Quick Share</string>
     <string name="pref_hide_quick_share_summary">Removes Google Quick Share from the list of sharing options</string>
     <string name="pref_hide_launcher_icon_title">Hide Launcher Icon</string>
-    <string name="pref_hide_launcher_icon_summary">Hides app from launcher. You can still open it from LSPosed manager</string>
+    <string name="pref_hide_launcher_icon_summary">Hides app from launcher. You can still open it from your Xposed manager, such as LSPosed or Vector</string>
 
     <!-- Deletion prefs -->
     <string name="pref_deletion_enabled_title">Delete Shared Screenshots</string>

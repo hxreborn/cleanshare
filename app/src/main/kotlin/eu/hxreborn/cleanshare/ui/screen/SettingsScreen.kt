@@ -282,7 +282,8 @@ private fun SettingsContent(
                 title = { Text(stringResource(R.string.pref_category_deletion)) },
             )
 
-            val deletionItemCount = if (state.deletionEnabled) 6 else 1
+            val deletionExpanded = state.deletionEnabled && state.isRootAvailable
+            val deletionItemCount = if (deletionExpanded) 6 else 1
 
             val deletionEnabledShape = shapeForPosition(deletionItemCount, 0)
             switchPreference(
@@ -315,7 +316,7 @@ private fun SettingsContent(
                 onValueChange = onDeletionEnabledChange,
             )
 
-            if (state.deletionEnabled) {
+            if (deletionExpanded) {
                 item { Spacer(Modifier.height(2.dp)) }
 
                 val modeShape = shapeForPosition(deletionItemCount, 1)

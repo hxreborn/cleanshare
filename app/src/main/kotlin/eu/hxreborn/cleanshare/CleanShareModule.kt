@@ -21,6 +21,7 @@ import eu.hxreborn.cleanshare.hook.refreshCrossUserPrefs
 import eu.hxreborn.cleanshare.util.PREFS_FILE_NAME
 import eu.hxreborn.cleanshare.util.QUICK_SHARE_ACTIVITY
 import eu.hxreborn.cleanshare.util.debugLog
+import eu.hxreborn.cleanshare.util.declaredMethod
 import eu.hxreborn.cleanshare.util.findClass
 import eu.hxreborn.cleanshare.util.findMethodByName
 import io.github.libxposed.api.XposedModule
@@ -159,20 +160,19 @@ class CleanShareModule : XposedModule() {
                 return
             }
         val method =
-            findMethodByName(clazz, "getServiceTargetRowCount") ?: run {
+            clazz.declaredMethod("getServiceTargetRowCount") ?: run {
                 log(Log.INFO, TAG, "skip service-target-row-count reason=method-missing")
                 return
             }
         runCatching {
             method.isAccessible = true
             hook(method).intercept { chain ->
-                debugLog { "intercept service-target-row-count enabled=$hideDirectShare" }
                 if (hideDirectShare) return@intercept 0
                 chain.proceed()
             }
             val deoptimized =
                 ROW_COUNT_CALLER_NAMES.count { name ->
-                    findMethodByName(clazz, name)?.let { deoptimize(it) } == true
+                    clazz.declaredMethod(name)?.let { deoptimize(it) } == true
                 }
             log(Log.INFO, TAG, "hooked service-target-row-count deoptimized=$deoptimized")
         }.onFailure { log(Log.ERROR, TAG, "hook service-target-row-count failed", it) }

@@ -19,3 +19,6 @@ internal fun findMethodByName(
         .firstNotNullOfOrNull { cls ->
             cls.declaredMethods.firstOrNull { it.name == name }
         }
+
+internal fun Class<*>.declaredMethod(name: String): Method? =
+    declaredMethods.firstOrNull { it.name == name }

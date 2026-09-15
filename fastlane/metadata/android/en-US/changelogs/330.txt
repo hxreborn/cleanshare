@@ -1,3 +1,5 @@
 Show work and clone profile apps in the app filter list
 Apply your settings when the share sheet opens inside a work profile
+Remove the empty grey circles left behind when Direct Share is hidden
+Stop the delete checkbox overlapping the headline on Android 17
 Update Compose Material 3, Navigation 3 and build dependencies

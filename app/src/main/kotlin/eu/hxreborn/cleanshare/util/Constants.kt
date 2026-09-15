@@ -15,6 +15,8 @@ internal const val PREF_KEY_FILTERED_APPS = "filtered_apps"
 internal const val DEFAULT_DELETION_DELAY_MS = 15_000
 internal const val DEFAULT_SCREENSHOT_PATTERN = "[Ss]creenshot[_-]\\d{8}[_-]\\d{6}.*"
 
+internal const val PER_USER_RANGE = 100_000
+
 internal const val QUICK_SHARE_ACTIVITY = "com.google.android.gms.nearby.sharing.main.MainActivity"
 
 internal const val DELETION_PROVIDER_AUTHORITY = "eu.hxreborn.cleanshare.deletion"

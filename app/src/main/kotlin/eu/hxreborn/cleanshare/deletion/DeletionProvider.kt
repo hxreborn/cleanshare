@@ -14,13 +14,6 @@ class DeletionProvider : ContentProvider() {
     companion object {
         private const val TAG = "CleanShare"
 
-        private val ALLOWED_CALLER_PACKAGES =
-            setOf(
-                "com.android.intentresolver",
-                "android",
-                "com.android.systemui",
-            )
-
         private val ALLOWED_URI_AUTHORITIES =
             setOf(
                 "media",
@@ -53,7 +46,7 @@ class DeletionProvider : ContentProvider() {
         arg: String?,
         extras: Bundle?,
     ): Bundle {
-        if (!verifyCallerAllowed()) {
+        if (!isCallerAllowed()) {
             Log.d(TAG, "Caller rejected: uid=${Binder.getCallingUid()}")
             return errorResult("unauthorized")
         }
@@ -97,15 +90,6 @@ class DeletionProvider : ContentProvider() {
         executor.schedule(request)
         Log.d(TAG, "Enqueued deletion: ${request.id}")
         return okResult { putString("request_id", request.id) }
-    }
-
-    private fun verifyCallerAllowed(): Boolean {
-        val callerUid = Binder.getCallingUid()
-        if (callerUid == android.os.Process.myUid()) return true
-        val callerPackages =
-            context?.packageManager?.getPackagesForUid(callerUid)
-                ?: return false
-        return callerPackages.any { it in ALLOWED_CALLER_PACKAGES }
     }
 
     private fun isValidDeletionUri(uri: Uri): Boolean {

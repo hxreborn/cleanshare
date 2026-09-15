@@ -17,6 +17,7 @@ import eu.hxreborn.cleanshare.hook.hideDirectShare
 import eu.hxreborn.cleanshare.hook.hideQuickShare
 import eu.hxreborn.cleanshare.hook.isAppFiltered
 import eu.hxreborn.cleanshare.hook.loadHookPrefs
+import eu.hxreborn.cleanshare.hook.refreshCrossUserPrefs
 import eu.hxreborn.cleanshare.util.PREFS_FILE_NAME
 import eu.hxreborn.cleanshare.util.QUICK_SHARE_ACTIVITY
 import eu.hxreborn.cleanshare.util.debugLog
@@ -151,10 +152,10 @@ class CleanShareModule : XposedModule() {
             val method = chooserClass.getDeclaredMethod("onCreate", Bundle::class.java)
             method.isAccessible = true
             hook(method).intercept { chain ->
+                val activity = chain.thisObject as? Activity
+                if (activity != null) refreshCrossUserPrefs(activity)
                 chain.proceed()
-                CheckboxHook.onChooserCreated(
-                    chain.thisObject as? Activity ?: return@intercept null,
-                )
+                if (activity != null) CheckboxHook.onChooserCreated(activity)
                 null
             }
             log(Log.INFO, TAG, "hooked chooser-create")

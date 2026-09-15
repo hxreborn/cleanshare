@@ -2,22 +2,14 @@ package eu.hxreborn.cleanshare.deletion
 
 import android.content.ContentProvider
 import android.content.ContentValues
+import android.content.Context
 import android.database.Cursor
 import android.net.Uri
-import android.os.Binder
 import android.os.Bundle
+import eu.hxreborn.cleanshare.util.PREFS_FILE_NAME
 import eu.hxreborn.cleanshare.util.RootUtils
 
 class ScreenshotQueryProvider : ContentProvider() {
-    companion object {
-        private val ALLOWED_CALLER_PACKAGES =
-            setOf(
-                "com.android.intentresolver",
-                "android",
-                "com.android.systemui",
-            )
-    }
-
     override fun onCreate(): Boolean = true
 
     override fun call(
@@ -25,11 +17,12 @@ class ScreenshotQueryProvider : ContentProvider() {
         arg: String?,
         extras: Bundle?,
     ): Bundle {
-        if (!verifyCallerAllowed()) {
+        if (!isCallerAllowed()) {
             return errorResult("unauthorized")
         }
         return when (method) {
             "resolve_screenshot" -> handleResolveScreenshot(extras)
+            "prefs" -> handlePrefs()
             else -> errorResult("unknown method: $method")
         }
     }
@@ -42,13 +35,20 @@ class ScreenshotQueryProvider : ContentProvider() {
         return okResult { putStringArray("lines", lines.toTypedArray()) }
     }
 
-    private fun verifyCallerAllowed(): Boolean {
-        val callerUid = Binder.getCallingUid()
-        if (callerUid == android.os.Process.myUid()) return true
-        val callerPackages =
-            context?.packageManager?.getPackagesForUid(callerUid)
-                ?: return false
-        return callerPackages.any { it in ALLOWED_CALLER_PACKAGES }
+    private fun handlePrefs(): Bundle {
+        val prefs =
+            context?.getSharedPreferences(PREFS_FILE_NAME, Context.MODE_PRIVATE)
+                ?: return errorResult("no context")
+        return okResult {
+            prefs.all.forEach { (key, value) ->
+                when (value) {
+                    is Boolean -> putBoolean(key, value)
+                    is Int -> putInt(key, value)
+                    is String -> putString(key, value)
+                    is Set<*> -> putStringArrayList(key, value.mapTo(ArrayList()) { it.toString() })
+                }
+            }
+        }
     }
 
     override fun query(

@@ -26,11 +26,12 @@ object RootUtils {
 
     fun isRootAvailable(): Boolean =
         cachedRootAvailable ?: runCatching {
+            Shell.getCachedShell()?.takeUnless { it.isRoot }?.close()
             Shell.getShell().isRoot
         }.getOrElse {
             Log.w(TAG, "Root check failed: ${it.message}")
             false
-        }.also { cachedRootAvailable = it }
+        }.also { if (it) cachedRootAvailable = true }
 
     fun deleteFile(filePath: String): Boolean {
         val canonical =

@@ -28,9 +28,15 @@ class SettingsViewModel(
     private val launcherIconHidden = MutableStateFlow(false)
 
     init {
+        refreshRootAccess()
+        viewModelScope.launch(Dispatchers.IO) {
+            launcherIconHidden.value = !isLauncherIconVisible(applicationContext)
+        }
+    }
+
+    fun refreshRootAccess() {
         viewModelScope.launch(Dispatchers.IO) {
             rootAvailable.value = RootUtils.isRootAvailable()
-            launcherIconHidden.value = !isLauncherIconVisible(applicationContext)
         }
     }
 

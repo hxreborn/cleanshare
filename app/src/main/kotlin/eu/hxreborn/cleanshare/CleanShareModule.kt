@@ -53,6 +53,15 @@ private val CHOOSER_ADAPTER_CLASS_NAMES =
         "com.android.internal.app.ChooserListAdapter",
     )
 
+private val CHOOSER_GRID_ADAPTER_CLASS_NAMES =
+    listOf(
+        "com.android.intentresolver.grid.ChooserGridAdapter",
+        "com.android.intentresolver.ChooserGridAdapter",
+        "com.android.internal.app.ChooserActivity\$ChooserGridAdapter",
+    )
+
+private val ROW_COUNT_CALLER_NAMES = listOf("getItemCount", "getItemViewType")
+
 class CleanShareModule : XposedModule() {
     companion object {
         const val TAG = "CleanShare"
@@ -99,6 +108,7 @@ class CleanShareModule : XposedModule() {
             ANDROID_FRAMEWORK_PKG, INTENT_RESOLVER_PKG -> {
                 hookLowRam()
                 hookServiceTargetCountFallback(param.classLoader)
+                hookServiceTargetRowCountFallback(param.classLoader)
                 hookScreenshotDelete(param.classLoader)
                 hookTargetFilter(param.classLoader)
             }
@@ -139,6 +149,33 @@ class CleanShareModule : XposedModule() {
             }
             log(Log.INFO, TAG, "hooked service-target-count")
         }.onFailure { log(Log.ERROR, TAG, "hook service-target-count failed", it) }
+    }
+
+    // ART inlines the row count into getItemCount
+    private fun hookServiceTargetRowCountFallback(classLoader: ClassLoader) {
+        val clazz =
+            findClass(classLoader, CHOOSER_GRID_ADAPTER_CLASS_NAMES) ?: run {
+                log(Log.ERROR, TAG, "hook service-target-row-count failed reason=class-missing")
+                return
+            }
+        val method =
+            findMethodByName(clazz, "getServiceTargetRowCount") ?: run {
+                log(Log.INFO, TAG, "skip service-target-row-count reason=method-missing")
+                return
+            }
+        runCatching {
+            method.isAccessible = true
+            hook(method).intercept { chain ->
+                debugLog { "intercept service-target-row-count enabled=$hideDirectShare" }
+                if (hideDirectShare) return@intercept 0
+                chain.proceed()
+            }
+            val deoptimized =
+                ROW_COUNT_CALLER_NAMES.count { name ->
+                    findMethodByName(clazz, name)?.let { deoptimize(it) } == true
+                }
+            log(Log.INFO, TAG, "hooked service-target-row-count deoptimized=$deoptimized")
+        }.onFailure { log(Log.ERROR, TAG, "hook service-target-row-count failed", it) }
     }
 
     private fun hookScreenshotDelete(classLoader: ClassLoader) {

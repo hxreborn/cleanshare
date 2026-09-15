@@ -24,19 +24,16 @@ internal object CheckboxInserter {
             insertIntoHeadlineRow(activity, view) ||
             insertBelowHeader(activity, view)
 
-    // IntentResolver uses both android:id and com.android.intentresolver:id namespaces
+    // IntentResolver declares ids in both namespaces and only one of them resolves to a view
     @SuppressLint("DiscouragedApi")
-    private fun findViewId(
+    private fun findView(
         activity: Activity,
         name: String,
-    ): Int {
-        val packages = listOf("android", activity.packageName)
-        for (pkg in packages) {
+    ): ViewGroup? =
+        listOf("android", activity.packageName).firstNotNullOfOrNull { pkg ->
             val id = activity.resources.getIdentifier(name, "id", pkg)
-            if (id != 0) return id
+            if (id == 0) null else activity.findViewById<View>(id) as? ViewGroup
         }
-        return 0
-    }
 
     // Append to the inner LinearLayout inside content_preview_container (A11+).
     // The preview layout inflates a vertical LinearLayout as root on all versions:
@@ -55,11 +52,8 @@ internal object CheckboxInserter {
         view: View,
     ): Boolean =
         runCatching {
-            val id = findViewId(activity, "content_preview_container")
-            if (id == 0) return@runCatching false
-
-            val container = activity.findViewById<ViewGroup>(id) ?: return@runCatching false
-            if (container.childCount == 0) return@runCatching false
+            val container =
+                findView(activity, "content_preview_container") ?: return@runCatching false
 
             val inner = container.getChildAt(0) as? ViewGroup ?: return@runCatching false
             if (inner.findViewWithTag<View>(CHECKBOX_VIEW_TAG) != null) return@runCatching true
@@ -87,10 +81,9 @@ internal object CheckboxInserter {
         view: View,
     ): Boolean =
         runCatching {
-            val id = findViewId(activity, "chooser_headline_row_container")
-            if (id == 0) return@runCatching false
-
-            val container = activity.findViewById<FrameLayout>(id) ?: return@runCatching false
+            val container =
+                findView(activity, "chooser_headline_row_container") as? FrameLayout
+                    ?: return@runCatching false
             if (container.findViewWithTag<View>(CHECKBOX_VIEW_TAG) != null) return@runCatching true
 
             val density = activity.resources.displayMetrics.density
@@ -117,10 +110,7 @@ internal object CheckboxInserter {
         view: View,
     ): Boolean =
         runCatching {
-            val id = findViewId(activity, "chooser_header")
-            if (id == 0) return@runCatching false
-
-            val header = activity.findViewById<ViewGroup>(id) ?: return@runCatching false
+            val header = findView(activity, "chooser_header") ?: return@runCatching false
             if (header.findViewWithTag<View>(CHECKBOX_VIEW_TAG) != null) return@runCatching true
 
             val density = activity.resources.displayMetrics.density

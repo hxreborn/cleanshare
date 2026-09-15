@@ -1,9 +1,12 @@
 package eu.hxreborn.cleanshare.ui.util
 
+import android.content.Context
+import android.content.pm.LauncherApps
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
+import android.os.UserHandle
 import android.util.LruCache
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
@@ -32,19 +35,34 @@ internal fun Drawable.toIconBitmap(size: Int): Bitmap {
 internal fun rememberAppIcon(
     packageName: String,
     sizePx: Int,
+    user: UserHandle? = null,
 ): ImageBitmap? {
     val context = LocalContext.current
-    val key = "$packageName:$sizePx"
+    val key = "$packageName:$sizePx:$user"
     return produceState<ImageBitmap?>(initialValue = iconCache.get(key), key1 = key) {
         if (value != null) return@produceState
         value =
             withContext(Dispatchers.IO) {
                 runCatching {
-                    context.packageManager
-                        .getApplicationIcon(packageName)
+                    loadIcon(context, packageName, user)
                         .toIconBitmap(sizePx)
                         .asImageBitmap()
                 }.getOrNull()?.also { iconCache.put(key, it) }
             }
     }.value
 }
+
+private fun loadIcon(
+    context: Context,
+    packageName: String,
+    user: UserHandle?,
+): Drawable =
+    if (user == null) {
+        context.packageManager.getApplicationIcon(packageName)
+    } else {
+        context
+            .getSystemService(LauncherApps::class.java)
+            .getActivityList(packageName, user)
+            .first()
+            .getBadgedIcon(0)
+    }

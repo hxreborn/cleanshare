@@ -5,7 +5,10 @@ package eu.hxreborn.cleanshare.ui.screen
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
+import android.os.Process
+import android.os.UserHandle
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -110,29 +113,53 @@ private data class ShareTargetApp(
     val packageName: String,
     val label: String,
     val isSystem: Boolean,
+    val user: UserHandle? = null,
 )
 
 private suspend fun loadShareTargets(context: Context): List<ShareTargetApp> =
     withContext(Dispatchers.IO) {
-        val pm = context.packageManager
-        listOf(Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE)
-            .flatMap { action ->
-                runCatching {
-                    pm.queryIntentActivities(Intent(action).setType("*/*"), PackageManager.MATCH_ALL)
-                }.getOrDefault(emptyList())
-            }.asSequence()
-            .mapNotNull { it.activityInfo?.applicationInfo }
+        (ownProfileTargets(context) + otherProfileTargets(context))
             .filter { it.packageName != context.packageName }
             .distinctBy { it.packageName }
-            .map { info ->
-                ShareTargetApp(
-                    packageName = info.packageName,
-                    label = runCatching { info.loadLabel(pm).toString() }.getOrDefault(info.packageName),
-                    isSystem = info.flags and SYSTEM_FLAGS != 0,
-                )
-            }.sortedBy { it.label.lowercase() }
-            .toList()
+            .sortedBy { it.label.lowercase() }
     }
+
+private fun ownProfileTargets(context: Context): List<ShareTargetApp> {
+    val pm = context.packageManager
+    return listOf(Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE)
+        .flatMap { action ->
+            runCatching {
+                pm.queryIntentActivities(Intent(action).setType("*/*"), PackageManager.MATCH_ALL)
+            }.getOrDefault(emptyList())
+        }.mapNotNull { it.activityInfo?.applicationInfo }
+        .map { info ->
+            ShareTargetApp(
+                packageName = info.packageName,
+                label = runCatching { info.loadLabel(pm).toString() }.getOrDefault(info.packageName),
+                isSystem = info.flags and SYSTEM_FLAGS != 0,
+            )
+        }
+}
+
+private fun otherProfileTargets(context: Context): List<ShareTargetApp> {
+    val launcherApps = context.getSystemService(LauncherApps::class.java) ?: return emptyList()
+    val self = Process.myUserHandle()
+    return runCatching { launcherApps.profiles }
+        .getOrDefault(emptyList())
+        .filter { it != self }
+        .flatMap { user ->
+            runCatching { launcherApps.getActivityList(null, user) }
+                .getOrDefault(emptyList())
+                .map { activity ->
+                    ShareTargetApp(
+                        packageName = activity.applicationInfo.packageName,
+                        label = activity.label.toString(),
+                        isSystem = activity.applicationInfo.flags and SYSTEM_FLAGS != 0,
+                        user = user,
+                    )
+                }
+        }
+}
 
 @Stable
 private class ShareTargetsState(
@@ -474,7 +501,7 @@ private fun AppRow(
     onCheckedChange: (Boolean) -> Unit,
 ) {
     val sizePx = with(LocalDensity.current) { IconSize.roundToPx() }
-    val icon = rememberAppIcon(app.packageName, sizePx)
+    val icon = rememberAppIcon(app.packageName, sizePx, app.user)
 
     ListItem(
         modifier =

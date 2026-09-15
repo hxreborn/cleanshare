@@ -69,7 +69,9 @@ commit_parsers = [
   { body = ".*[Ss]ecurity", group = "<!-- 03 -->Security" },
   { message = "^refactor", group = "<!-- 04 -->Refactor" },
   { message = "^[Rr]evert", group = "<!-- 05 -->Reverts" },
-  { message = '^(build|chore)\(deps(-dev)?\)', group = "<!-- 08 -->Dependencies" },
+  # Action refs are owner/repo, Maven coordinates are group:artifact
+  { message = '^\w+\(deps(-dev)?\):\s*[Bb]ump [^:\s]+/', skip = true },
+  { message = '^(build|chore|ci)\(deps(-dev)?\)', group = "<!-- 08 -->Dependencies" },
   { message = "^doc", skip = true },
   { message = "^style", skip = true },
   { message = '^build(\(\w+\))?:\s*(bump|align|prepare|v?\d+\.\d+)', skip = true },

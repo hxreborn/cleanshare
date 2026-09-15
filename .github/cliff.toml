@@ -60,7 +60,7 @@ commit_preprocessors = [
   { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "" },
 ]
 commit_parsers = [
-  # A ci scope is never user facing, whatever the type in front of it
+  # A ci scope is never user facing
   { message = '^\w+\(ci\)', skip = true },
   { message = "^feat", group = "<!-- 00 -->Features" },
   { message = "^[fF]ix", group = "<!-- 01 -->Bug Fixes" },
@@ -69,7 +69,7 @@ commit_parsers = [
   { body = ".*[Ss]ecurity", group = "<!-- 03 -->Security" },
   { message = "^refactor", group = "<!-- 04 -->Refactor" },
   { message = "^[Rr]evert", group = "<!-- 05 -->Reverts" },
-  # Action refs are owner/repo, Maven coordinates are group:artifact
+  # Action refs carry a slash before any colon
   { message = '^\w+\(deps(-dev)?\):\s*[Bb]ump [^:\s]+/', skip = true },
   { message = '^(build|chore|ci)\(deps(-dev)?\)', group = "<!-- 08 -->Dependencies" },
   { message = "^doc", skip = true },

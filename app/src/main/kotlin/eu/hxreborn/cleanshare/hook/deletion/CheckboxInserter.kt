@@ -24,7 +24,6 @@ internal object CheckboxInserter {
             insertIntoHeadlineRow(activity, view) ||
             insertBelowHeader(activity, view)
 
-    // IntentResolver declares ids in both namespaces and only one of them resolves to a view
     @SuppressLint("DiscouragedApi")
     private fun findView(
         activity: Activity,

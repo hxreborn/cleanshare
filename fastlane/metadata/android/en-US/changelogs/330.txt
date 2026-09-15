@@ -3,5 +3,5 @@ Apply your settings when the share sheet opens in a work profile or private spac
 Remove the empty grey circles left behind when Direct Share is hidden
 Stop the delete checkbox overlapping the headline on Android 17
 Hide the screenshot deletion options when root is unavailable
-Pick up root access again without restarting the app
+Detect root access again without restarting the app
 Update Compose Material 3, Navigation 3 and build dependencies

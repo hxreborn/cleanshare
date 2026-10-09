@@ -1,0 +1,1 @@
+Hide apps that only exist in the private space: block or allow them from the CleanShare copy installed there, every profile's list is merged

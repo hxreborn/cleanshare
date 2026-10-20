@@ -5,30 +5,56 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.os.Process
+import android.os.UserHandle
+import android.os.UserManager
+import eu.hxreborn.cleanshare.prefs.Prefs
 import eu.hxreborn.cleanshare.util.PER_USER_RANGE
 import eu.hxreborn.cleanshare.util.QUERY_PROVIDER_AUTHORITY
 import eu.hxreborn.cleanshare.util.log
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener as OnChangeListener
 
-private val OWNER_QUERY_URI = Uri.parse("content://0@$QUERY_PROVIDER_AUTHORITY")
-
 // LSPosed keys module prefs by the calling process user
-internal fun refreshCrossUserPrefs(context: Context) {
+internal fun refreshCrossUserPrefs(
+    context: Context,
+    ownPrefs: SharedPreferences?,
+) {
     val user = Process.myUid() / PER_USER_RANGE
-    if (user == 0) return
-    runCatching {
-        val result = context.contentResolver.call(OWNER_QUERY_URI, "prefs", null, null)
-        val status = result?.getString("status")
-        if (status != "ok") {
-            log("skip cross-user prefs status=$status")
-            return
-        }
-        loadHookPrefs(BundlePreferences(result))
-        // Deletion queue, media lookup and root all live in the owner user
-        deletionEnabled = false
-        log("loaded cross-user prefs user=$user filtered=${filteredApps.size}")
-    }.onFailure { log("cross-user prefs failed", it) }
+    val others =
+        runCatching {
+            val getIdentifier = UserHandle::class.java.getMethod("getIdentifier")
+            context.getSystemService(UserManager::class.java).userProfiles.map {
+                getIdentifier.invoke(it) as Int
+            }
+        }.getOrDefault(listOf(0)).filter { it != user }
+    if (others.isEmpty()) return
+    val remote = others.associateWith { fetchPrefs(context, it) }
+    val missing = remote.filterValues { it == null }.keys
+    val base = if (user == 0) ownPrefs else remote[0]
+    if (base == null) {
+        log("skip cross-user prefs user=$user missing=$missing")
+        return
+    }
+    loadHookPrefs(base)
+    // Deletion queue, media lookup and root all live in the owner user
+    if (user != 0) deletionEnabled = false
+    filteredApps =
+        (remote.values + ownPrefs)
+            .filterNotNull()
+            .flatMapTo(filteredApps.toHashSet()) { Prefs.FILTERED_APPS.read(it) }
+    log("loaded cross-user prefs user=$user missing=$missing filtered=${filteredApps.size}")
 }
+
+private fun fetchPrefs(
+    context: Context,
+    user: Int,
+): SharedPreferences? =
+    runCatching {
+        val uri = Uri.parse("content://$user@$QUERY_PROVIDER_AUTHORITY")
+        context.contentResolver
+            .call(uri, "prefs", null, null)
+            ?.takeIf { it.getString("status") == "ok" }
+            ?.let(::BundlePreferences)
+    }.onFailure { log("cross-user prefs failed user=$user", it) }.getOrNull()
 
 private class BundlePreferences(
     private val values: Bundle,

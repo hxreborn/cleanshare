@@ -1,0 +1,7 @@
+Added a status card showing whether CleanShare is active and which Xposed framework runs it
+Added a button to put the share sheet in CleanShare's scope
+Added a light, dark or system theme and dynamic color
+Added an About screen with What's new, the changelog and a bug report link
+Fixed the app filter ignoring apps blocked or allowed in the private space copy
+Fixed the pattern dialog buttons hiding behind the keyboard
+Fixed settings stretching across tablet screens

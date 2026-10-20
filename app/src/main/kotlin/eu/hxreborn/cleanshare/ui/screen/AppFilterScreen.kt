@@ -35,7 +35,6 @@ import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Android
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Deselect
@@ -51,15 +50,13 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -71,6 +68,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -78,12 +76,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -94,13 +96,17 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import eu.hxreborn.cleanshare.R
 import eu.hxreborn.cleanshare.prefs.AppFilterMode
-import eu.hxreborn.cleanshare.ui.state.SettingsUiState
+import eu.hxreborn.cleanshare.ui.component.BackButton
+import eu.hxreborn.cleanshare.ui.component.ChoiceButtonGroup
+import eu.hxreborn.cleanshare.ui.util.centeredContentWidth
 import eu.hxreborn.cleanshare.ui.util.drawVerticalScrollbar
 import eu.hxreborn.cleanshare.ui.util.rememberAppIcon
 import eu.hxreborn.cleanshare.ui.viewmodel.SettingsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -165,6 +171,7 @@ private fun otherProfileTargets(context: Context): List<ShareTargetApp> {
 private class ShareTargetsState(
     private val context: Context,
     private val scope: CoroutineScope,
+    private val haptics: HapticFeedback,
 ) {
     var apps by mutableStateOf<List<ShareTargetApp>?>(null)
         private set
@@ -187,6 +194,7 @@ private class ShareTargetsState(
             scope.launch {
                 try {
                     apps = loadShareTargets(context)
+                    if (isRefreshing) haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                 } finally {
                     isRefreshing = false
                 }
@@ -198,7 +206,8 @@ private class ShareTargetsState(
 private fun rememberShareTargets(): ShareTargetsState {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val targets = remember(context) { ShareTargetsState(context, scope) }
+    val haptics = LocalHapticFeedback.current
+    val targets = remember(context) { ShareTargetsState(context, scope, haptics) }
     LifecycleResumeEffect(targets) {
         targets.refresh()
         onPauseOrDispose {}
@@ -212,28 +221,21 @@ fun AppFilterScreen(
     viewModel: SettingsViewModel,
     onBack: () -> Unit,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val state = uiState as? SettingsUiState.Ready
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val targets = rememberShareTargets()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val haptics = LocalHapticFeedback.current
     var menuOpen by remember { mutableStateOf(false) }
     var hideSystemApps by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         contentWindowInsets = WindowInsets.navigationBars.union(WindowInsets.ime),
         topBar = {
-            LargeTopAppBar(
+            MediumFlexibleTopAppBar(
                 title = { Text(stringResource(R.string.pref_app_filter_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = stringResource(R.string.back),
-                        )
-                    }
-                },
+                navigationIcon = { BackButton(onBack) },
                 actions = {
-                    IconButton(onClick = { menuOpen = true }) {
+                    IconButton(onClick = { menuOpen = true }, shapes = IconButtonDefaults.shapes()) {
                         Icon(
                             Icons.Outlined.MoreVert,
                             contentDescription = stringResource(R.string.more_options),
@@ -245,6 +247,9 @@ fun AppFilterScreen(
                             onClick = {
                                 menuOpen = false
                                 hideSystemApps = !hideSystemApps
+                                haptics.performHapticFeedback(
+                                    if (hideSystemApps) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff,
+                                )
                             },
                             trailingIcon = { Checkbox(checked = hideSystemApps, onCheckedChange = null) },
                         )
@@ -262,9 +267,10 @@ fun AppFilterScreen(
                             onClick = {
                                 menuOpen = false
                                 viewModel.setFilteredApps(emptySet())
+                                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                             },
                             leadingIcon = { Icon(Icons.Outlined.Deselect, contentDescription = null) },
-                            enabled = state != null && state.filteredApps.isNotEmpty(),
+                            enabled = state.filteredApps.isNotEmpty(),
                         )
                     }
                 },
@@ -272,12 +278,6 @@ fun AppFilterScreen(
             )
         },
     ) { innerPadding ->
-        if (state == null) {
-            Box(Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.Center) {
-                LoadingIndicator()
-            }
-            return@Scaffold
-        }
         AppFilterContent(
             innerPadding = innerPadding,
             scrollBehavior = scrollBehavior,
@@ -288,6 +288,7 @@ fun AppFilterScreen(
             selected = state.filteredApps,
             onModeChange = viewModel::setAppFilterMode,
             onToggle = { pkg, checked ->
+                haptics.performHapticFeedback(if (checked) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff)
                 viewModel.setFilteredApps(
                     if (checked) state.filteredApps + pkg else state.filteredApps - pkg,
                 )
@@ -332,13 +333,20 @@ private fun AppFilterContent(
     val filtersActive = query.isNotBlank() || hideSystemApps
     val listState = rememberLazyListState()
     val pullState = rememberPullToRefreshState()
+    val haptics = LocalHapticFeedback.current
+    LaunchedEffect(pullState) {
+        snapshotFlow { pullState.distanceFraction >= 1f }
+            .distinctUntilChanged()
+            .filter { it && !targets.isRefreshing }
+            .collect { haptics.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate) }
+    }
 
-    Column(Modifier.fillMaxSize().padding(innerPadding)) {
+    Column(Modifier.fillMaxSize().padding(innerPadding).centeredContentWidth()) {
         ModeSelector(
             mode = mode,
             onModeChange = onModeChange,
             selectedCount = selected.size,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier = Modifier.padding(top = 8.dp),
         )
 
         TextField(
@@ -428,25 +436,16 @@ private fun ModeSelector(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-            AppFilterMode.entries.forEachIndexed { index, option ->
-                SegmentedButton(
-                    selected = option == mode,
-                    onClick = { onModeChange(option) },
-                    shape = SegmentedButtonDefaults.itemShape(index, AppFilterMode.entries.size),
-                ) {
-                    Text(
-                        stringResource(option.labelRes),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-        }
+        ChoiceButtonGroup(
+            options = AppFilterMode.entries,
+            selected = mode,
+            onSelect = onModeChange,
+            label = { stringResource(it.labelRes) },
+        )
         AnimatedContent(
             targetState = mode,
             transitionSpec = { fadeIn() togetherWith fadeOut() },
-            modifier = Modifier.padding(top = 8.dp),
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
             label = "filter-mode-summary",
         ) { target ->
             Text(

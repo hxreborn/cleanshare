@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
             val state by viewModel.uiState.collectAsStateWithLifecycle()
             val moduleStatus by app.moduleStatus.collectAsStateWithLifecycle()
 
-            CleanShareTheme {
+            CleanShareTheme(themeMode = state.themeMode, dynamicColor = state.dynamicColor) {
                 val backStack = rememberNavBackStack(Screen.Home)
                 val pop: () -> Unit = { backStack.removeLastOrNull() }
 
@@ -87,6 +87,8 @@ class MainActivity : ComponentActivity() {
                                                 onShowDeletionToastChange = viewModel::setShowDeletionToast,
                                                 onScreenshotPatternChange = viewModel::setScreenshotPattern,
                                                 onAppFilterClick = { backStack.add(Screen.AppFilter) },
+                                                onThemeModeChange = viewModel::setThemeMode,
+                                                onDynamicColorChange = viewModel::setDynamicColor,
                                                 onLauncherIconHiddenChange = viewModel::setLauncherIconHidden,
                                                 onAboutClick = { backStack.add(Screen.About) },
                                                 onRequestScope = app::requestScope,

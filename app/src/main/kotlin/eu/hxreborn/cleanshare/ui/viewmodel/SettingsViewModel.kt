@@ -9,6 +9,7 @@ import eu.hxreborn.cleanshare.prefs.DeletionAction
 import eu.hxreborn.cleanshare.prefs.DeletionMode
 import eu.hxreborn.cleanshare.prefs.Prefs
 import eu.hxreborn.cleanshare.prefs.PrefsRepository
+import eu.hxreborn.cleanshare.prefs.ThemeMode
 import eu.hxreborn.cleanshare.ui.state.SettingsUiState
 import eu.hxreborn.cleanshare.util.RootUtils
 import eu.hxreborn.cleanshare.util.isLauncherIconVisible
@@ -66,6 +67,8 @@ class SettingsViewModel(
         isRootAvailable = root,
         appFilterMode = app.appFilterMode,
         filteredApps = app.filteredApps,
+        themeMode = app.themeMode,
+        dynamicColor = app.dynamicColor,
     )
 
     fun setHideDirectShare(enabled: Boolean) = prefs.save(Prefs.HIDE_DIRECT_SHARE, enabled)
@@ -87,6 +90,10 @@ class SettingsViewModel(
     fun setAppFilterMode(mode: AppFilterMode) = prefs.save(Prefs.APP_FILTER_MODE, mode)
 
     fun setFilteredApps(packages: Set<String>) = prefs.save(Prefs.FILTERED_APPS, packages)
+
+    fun setThemeMode(mode: ThemeMode) = prefs.save(Prefs.THEME_MODE, mode)
+
+    fun setDynamicColor(enabled: Boolean) = prefs.save(Prefs.DYNAMIC_COLOR, enabled)
 
     fun setLauncherIconHidden(hidden: Boolean) {
         setLauncherIconVisible(applicationContext, !hidden)

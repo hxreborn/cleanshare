@@ -5,6 +5,7 @@ package eu.hxreborn.cleanshare.ui.screen
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
@@ -35,10 +36,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.SpeakerNotes
+import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.FolderDelete
 import androidx.compose.material.icons.outlined.NearbyOff
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.PhonelinkErase
 import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.material.icons.outlined.Timer
@@ -91,9 +94,14 @@ import eu.hxreborn.cleanshare.R
 import eu.hxreborn.cleanshare.prefs.AppFilterMode
 import eu.hxreborn.cleanshare.prefs.DeletionAction
 import eu.hxreborn.cleanshare.prefs.DeletionMode
+import eu.hxreborn.cleanshare.prefs.ThemeMode
 import eu.hxreborn.cleanshare.ui.component.ChoiceButtonGroup
 import eu.hxreborn.cleanshare.ui.component.PreferenceTitle
+import eu.hxreborn.cleanshare.ui.component.SectionCard
 import eu.hxreborn.cleanshare.ui.component.groupedPreference
+import eu.hxreborn.cleanshare.ui.component.preference.SelectPreference
+import eu.hxreborn.cleanshare.ui.component.preference.SelectPreferenceDialog
+import eu.hxreborn.cleanshare.ui.component.preference.TogglePreferenceWithIcon
 import eu.hxreborn.cleanshare.ui.component.sectionPreferenceTheme
 import eu.hxreborn.cleanshare.ui.component.switchPreference
 import eu.hxreborn.cleanshare.ui.state.SettingsUiState
@@ -124,6 +132,8 @@ class HomeActions(
     val onShowDeletionToastChange: (Boolean) -> Unit,
     val onScreenshotPatternChange: (String) -> Unit,
     val onAppFilterClick: () -> Unit,
+    val onThemeModeChange: (ThemeMode) -> Unit,
+    val onDynamicColorChange: (Boolean) -> Unit,
     val onLauncherIconHiddenChange: (Boolean) -> Unit,
     val onAboutClick: () -> Unit,
     val onRequestScope: (List<String>) -> Unit,
@@ -144,6 +154,7 @@ fun HomeScreen(
     val onResume by rememberUpdatedState(actions.onResume)
     val haptics = LocalHapticFeedback.current
     var showPatternDialog by rememberSaveable { mutableStateOf(false) }
+    var showThemeDialog by rememberSaveable { mutableStateOf(false) }
 
     LifecycleResumeEffect(Unit) {
         onResume()
@@ -161,6 +172,24 @@ fun HomeScreen(
                 showPatternDialog = false
             },
             onDismiss = { showPatternDialog = false },
+        )
+    }
+
+    if (showThemeDialog) {
+        val themeLabels = ThemeMode.entries.associateWith { stringResource(it.labelRes) }
+        SelectPreferenceDialog(
+            title = { Text(stringResource(R.string.pref_theme_title)) },
+            value = state.themeMode,
+            values = ThemeMode.entries,
+            valueToText = { themeLabels.getValue(it) },
+            onValueChange = {
+                if (it != state.themeMode) {
+                    haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                    actions.onThemeModeChange(it)
+                }
+                showThemeDialog = false
+            },
+            onDismiss = { showThemeDialog = false },
         )
     }
 
@@ -205,6 +234,7 @@ fun HomeScreen(
 
                 shareSheetItems(state, actions, surface)
                 cleanupItems(state, actions, surface) { showPatternDialog = true }
+                appearanceItems(state, actions) { showThemeDialog = true }
 
                 preferenceCategory(
                     key = "category_general",
@@ -384,6 +414,55 @@ private fun LazyListScope.cleanupItems(
         summary = { Text(stringResource(R.string.pref_screenshot_pattern_summary)) },
         onClick = onPatternClick,
     )
+}
+
+private fun LazyListScope.appearanceItems(
+    state: SettingsUiState,
+    actions: HomeActions,
+    onThemeClick: () -> Unit,
+) {
+    preferenceCategory(
+        key = "category_app_theme",
+        title = { Text(stringResource(R.string.group_app_theme)) },
+    )
+
+    item(key = "app_theme_section") {
+        val haptics = LocalHapticFeedback.current
+        val themeLabel = stringResource(state.themeMode.labelRes)
+        SectionCard(
+            items =
+                listOfNotNull(
+                    {
+                        SelectPreference(
+                            value = state.themeMode,
+                            onClick = onThemeClick,
+                            icon = { Icon(Icons.Outlined.DarkMode, contentDescription = null) },
+                            title = { Text(stringResource(R.string.pref_theme_title)) },
+                            summary = { Text(stringResource(R.string.pref_theme_summary)) },
+                            valueToText = { themeLabel },
+                        )
+                    },
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        {
+                            TogglePreferenceWithIcon(
+                                value = state.dynamicColor,
+                                onValueChange = {
+                                    haptics.performHapticFeedback(
+                                        if (it) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff,
+                                    )
+                                    actions.onDynamicColorChange(it)
+                                },
+                                icon = { Icon(Icons.Outlined.Palette, contentDescription = null) },
+                                title = { Text(stringResource(R.string.pref_dynamic_color_title)) },
+                                summary = { Text(stringResource(R.string.pref_dynamic_color_summary)) },
+                            )
+                        }
+                    } else {
+                        null
+                    },
+                ),
+        )
+    }
 }
 
 @Composable

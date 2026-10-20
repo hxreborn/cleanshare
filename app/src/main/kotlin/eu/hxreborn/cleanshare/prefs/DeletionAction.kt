@@ -5,11 +5,11 @@ import eu.hxreborn.cleanshare.R
 
 enum class DeletionAction(
     val key: String,
-    val displayName: String,
+    @StringRes val labelRes: Int,
     @StringRes val summaryRes: Int,
 ) {
-    DELETE("delete", "Delete", R.string.pref_deletion_action_summary_delete),
-    TRASH("trash", "Move to trash", R.string.pref_deletion_action_summary_trash),
+    DELETE("delete", R.string.deletion_action_delete, R.string.pref_deletion_action_summary_delete),
+    TRASH("trash", R.string.deletion_action_trash, R.string.pref_deletion_action_summary_trash),
     ;
 
     companion object {

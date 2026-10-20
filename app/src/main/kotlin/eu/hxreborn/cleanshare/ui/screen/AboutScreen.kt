@@ -48,7 +48,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.ModalBottomSheet
@@ -58,7 +57,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,7 +64,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -85,12 +82,14 @@ import eu.hxreborn.cleanshare.ModuleStatus
 import eu.hxreborn.cleanshare.R
 import eu.hxreborn.cleanshare.ui.component.AdaptiveButtonRow
 import eu.hxreborn.cleanshare.ui.component.BackButton
+import eu.hxreborn.cleanshare.ui.component.MorphingLogo
 import eu.hxreborn.cleanshare.ui.component.NavigationRow
 import eu.hxreborn.cleanshare.ui.component.RowGroup
 import eu.hxreborn.cleanshare.ui.component.RowHeadline
 import eu.hxreborn.cleanshare.ui.component.RowSurface
 import eu.hxreborn.cleanshare.ui.component.ScreenGutter
 import eu.hxreborn.cleanshare.ui.component.SectionHeader
+import eu.hxreborn.cleanshare.ui.component.rememberLogoPulse
 import eu.hxreborn.cleanshare.ui.util.Release
 import eu.hxreborn.cleanshare.ui.util.centeredContentWidth
 import eu.hxreborn.cleanshare.ui.util.drawVerticalScrollbar
@@ -237,14 +236,18 @@ private fun IdentityCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Box(
+            val logoPulse = rememberLogoPulse()
+            MorphingLogo(
+                pulse = logoPulse,
                 modifier =
                     Modifier
                         .size(88.dp)
-                        .clip(MaterialShapes.Cookie9Sided.toShape())
-                        .background(colorResource(R.color.ic_launcher_background))
-                        .clickable { Toast.makeText(context, easterEgg, Toast.LENGTH_SHORT).show() },
+                        .clickable(interactionSource = null, indication = null) {
+                            logoPulse.tap()
+                            Toast.makeText(context, easterEgg, Toast.LENGTH_SHORT).show()
+                        },
             ) {
+                Box(Modifier.fillMaxSize().background(colorResource(R.color.ic_launcher_background)))
                 Image(
                     painter = painterResource(R.drawable.ic_launcher_foreground),
                     contentDescription = null,

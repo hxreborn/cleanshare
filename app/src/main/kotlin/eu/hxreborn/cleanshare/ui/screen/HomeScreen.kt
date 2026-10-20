@@ -96,12 +96,14 @@ import eu.hxreborn.cleanshare.prefs.DeletionAction
 import eu.hxreborn.cleanshare.prefs.DeletionMode
 import eu.hxreborn.cleanshare.prefs.ThemeMode
 import eu.hxreborn.cleanshare.ui.component.ChoiceButtonGroup
+import eu.hxreborn.cleanshare.ui.component.MorphingLogo
 import eu.hxreborn.cleanshare.ui.component.PreferenceTitle
 import eu.hxreborn.cleanshare.ui.component.SectionCard
 import eu.hxreborn.cleanshare.ui.component.groupedPreference
 import eu.hxreborn.cleanshare.ui.component.preference.SelectPreference
 import eu.hxreborn.cleanshare.ui.component.preference.SelectPreferenceDialog
 import eu.hxreborn.cleanshare.ui.component.preference.TogglePreferenceWithIcon
+import eu.hxreborn.cleanshare.ui.component.rememberLogoPulse
 import eu.hxreborn.cleanshare.ui.component.sectionPreferenceTheme
 import eu.hxreborn.cleanshare.ui.component.switchPreference
 import eu.hxreborn.cleanshare.ui.state.SettingsUiState
@@ -657,17 +659,29 @@ private fun StatusBadge(
         LoadingIndicator(modifier = Modifier.size(BadgeSize))
         return
     }
+    if (healthy) {
+        MorphingLogo(pulse = rememberLogoPulse(), modifier = Modifier.size(BadgeSize)) {
+            Box(Modifier.matchParentSize().background(colors.primary))
+            Icon(
+                imageVector = Icons.Rounded.Check,
+                contentDescription = null,
+                tint = colors.onPrimary,
+                modifier = Modifier.size(BadgeIconSize),
+            )
+        }
+        return
+    }
     Box(
         modifier =
             Modifier
                 .size(BadgeSize)
-                .background(color = if (healthy) colors.primary else colors.error, shape = MaterialShapes.Sunny.toShape()),
+                .background(color = colors.error, shape = MaterialShapes.Sunny.toShape()),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            imageVector = if (healthy) Icons.Rounded.Check else Icons.Rounded.PriorityHigh,
+            imageVector = Icons.Rounded.PriorityHigh,
             contentDescription = null,
-            tint = if (healthy) colors.onPrimary else colors.onError,
+            tint = colors.onError,
             modifier = Modifier.size(BadgeIconSize),
         )
     }

@@ -15,8 +15,10 @@ private val ALLOWED_CALLER_PACKAGES =
 internal fun ContentProvider.isCallerAllowed(): Boolean {
     val callerUid = Binder.getCallingUid()
     if (callerUid == Process.myUid()) return true
+    val myUserBase = Process.myUid() / PER_USER_RANGE * PER_USER_RANGE
+    val callerUidInMyUser = myUserBase + callerUid % PER_USER_RANGE
     val callerPackages =
-        context?.packageManager?.getPackagesForUid(callerUid % PER_USER_RANGE)
+        context?.packageManager?.getPackagesForUid(callerUidInMyUser)
             ?: return false
     return callerPackages.any { it in ALLOWED_CALLER_PACKAGES }
 }

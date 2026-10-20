@@ -20,6 +20,8 @@ data class AppPrefs(
     val screenshotPattern: String,
     val appFilterMode: AppFilterMode,
     val filteredApps: Set<String>,
+    val themeMode: ThemeMode,
+    val dynamicColor: Boolean,
 )
 
 class PrefsRepository(
@@ -51,7 +53,7 @@ class PrefsRepository(
         }
     }
 
-    private fun readAll() =
+    fun readAll() =
         AppPrefs(
             hideDirectShare = read(Prefs.HIDE_DIRECT_SHARE),
             hideQuickShare = read(Prefs.HIDE_QUICK_SHARE),
@@ -63,5 +65,7 @@ class PrefsRepository(
             screenshotPattern = read(Prefs.SCREENSHOT_PATTERN),
             appFilterMode = read(Prefs.APP_FILTER_MODE),
             filteredApps = read(Prefs.FILTERED_APPS),
+            themeMode = read(Prefs.THEME_MODE),
+            dynamicColor = read(Prefs.DYNAMIC_COLOR),
         )
 }

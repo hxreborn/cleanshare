@@ -51,7 +51,7 @@ class PrefsRepository(
         }
     }
 
-    private fun readAll() =
+    fun readAll() =
         AppPrefs(
             hideDirectShare = read(Prefs.HIDE_DIRECT_SHARE),
             hideQuickShare = read(Prefs.HIDE_QUICK_SHARE),

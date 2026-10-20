@@ -1,80 +1,108 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">CleanShare</string>
-    <string name="app_desc">Hides share-sheet suggestions and can auto-delete screenshots</string>
+    <string name="app_desc">Removes clutter from the share sheet and cleans up shared screenshots</string>
 
-    <!-- Settings categories -->
-    <string name="pref_category_features">Share Sheet</string>
-    <string name="pref_category_general">General</string>
-    <string name="pref_category_deletion">Screenshot Cleanup</string>
-    <string name="pref_category_about">About</string>
+    <string name="status_checking_title">Checking CleanShare</string>
+    <string name="status_active_title">CleanShare is active</string>
+    <string name="status_framework">%1$s %2$s (API %3$d)</string>
+    <string name="status_inactive_title">CleanShare isn\'t active</string>
+    <string name="status_inactive_body">Turn it on in your Xposed manager</string>
+    <string name="status_scope_title">Share sheet isn\'t in scope</string>
+    <string name="status_scope_body">Add %1$s to CleanShare\'s scope so it can change the share sheet</string>
+    <string name="status_scope_action">Add to scope</string>
+    <string name="status_scope_pending">Approve the request in your Xposed manager</string>
+    <string name="status_scope_failed">Request failed: %1$s</string>
 
-    <!-- Feature prefs -->
+    <string name="section_share_sheet">Share sheet</string>
+    <string name="section_cleanup">Screenshot cleanup</string>
     <string name="pref_hide_direct_share_title">Hide Direct Share</string>
-    <string name="pref_hide_direct_share_summary">Removes the suggested contacts row from the system share sheet</string>
+    <string name="pref_hide_direct_share_summary">Removes suggested contacts and chats</string>
     <string name="pref_hide_quick_share_title">Hide Quick Share</string>
-    <string name="pref_hide_quick_share_summary">Removes Google Quick Share from the list of sharing options</string>
-    <string name="pref_app_filter_title">Filter Apps</string>
-    <string name="pref_app_filter_summary_off">Choose which apps can appear in the share sheet</string>
+    <string name="pref_hide_quick_share_summary">Removes Google Quick Share from the app list</string>
+    <string name="pref_app_filter_title">Filter apps</string>
+    <string name="pref_app_filter_summary_off">Choose which apps the share sheet lists</string>
     <plurals name="pref_app_filter_summary_block">
-        <item quantity="one">%d app hidden from share sheet</item>
-        <item quantity="other">%d apps hidden from share sheet</item>
+        <item quantity="one">%d app hidden</item>
+        <item quantity="other">%d apps hidden</item>
     </plurals>
     <plurals name="pref_app_filter_summary_allow">
-        <item quantity="one">%d app shown in share sheet</item>
-        <item quantity="other">%d apps shown in share sheet</item>
+        <item quantity="one">Only %d app shown</item>
+        <item quantity="other">Only %d apps shown</item>
     </plurals>
-    <string name="app_filter_mode_block">Hide selected</string>
-    <string name="app_filter_mode_allow">Show only selected</string>
-    <string name="app_filter_none_block">No apps hidden. All apps shown in share sheet</string>
-    <string name="app_filter_none_allow">No apps selected. All apps shown in share sheet</string>
+    <string name="pref_deletion_enabled_title">Delete shared screenshots</string>
+    <string name="pref_deletion_enabled_summary">Removes a screenshot after you share it</string>
+    <string name="pref_deletion_requires_root">Needs root access</string>
+    <string name="pref_deletion_mode_title">When to delete</string>
+    <string name="deletion_mode_ask">Ask</string>
+    <string name="deletion_mode_always">Always</string>
+    <string name="pref_deletion_mode_summary_ask">Adds a \"Delete after sharing\" checkbox to the share sheet and remembers your last choice</string>
+    <string name="pref_deletion_mode_summary_always">Deletes every shared screenshot without asking</string>
+    <string name="pref_deletion_action_title">Trash or delete</string>
+    <string name="deletion_action_trash">Trash</string>
+    <string name="deletion_action_delete">Delete</string>
+    <string name="pref_deletion_action_summary_trash">Android keeps trashed files for 30 days</string>
+    <string name="pref_deletion_action_summary_delete">Deletes the file for good</string>
+    <string name="pref_deletion_delay_title">Wait before deleting</string>
+    <plurals name="pref_deletion_delay_summary">
+        <item quantity="one">%d second, so the receiving app can read the file</item>
+        <item quantity="other">%d seconds, so the receiving app can read the file</item>
+    </plurals>
+    <string name="pref_show_toast_title">Deletion message</string>
+    <string name="pref_show_toast_summary">Shows a short message after each deletion</string>
+    <string name="pref_screenshot_pattern_title">Screenshot filename pattern</string>
+    <string name="pref_screenshot_pattern_summary">Decides which files count as screenshots</string>
+
+    <string name="app_filter_mode_block">Hide</string>
+    <string name="app_filter_mode_allow">Show only</string>
+    <string name="app_filter_none_block">No apps hidden. The share sheet lists every app</string>
+    <string name="app_filter_none_allow">No apps picked. The share sheet lists every app</string>
     <string name="app_filter_search_hint">Search apps</string>
     <string name="app_filter_clear">Clear selection</string>
     <string name="app_filter_clear_search">Clear search</string>
     <string name="app_filter_hide_system">Hide system apps</string>
     <string name="app_filter_clear_filters">Clear filters</string>
-    <string name="app_filter_refresh">Refresh app list</string>
-    <string name="app_filter_empty">No apps match your filters</string>
-    <string name="app_filter_empty_none">No share targets found</string>
-    <string name="pref_hide_launcher_icon_title">Hide Launcher Icon</string>
-    <string name="pref_hide_launcher_icon_summary">Hides app from launcher. You can still open it from your Xposed manager, such as LSPosed or Vector</string>
+    <string name="app_filter_refresh">Refresh list</string>
+    <string name="app_filter_empty">No apps match</string>
+    <string name="app_filter_empty_none">No apps can receive shares</string>
 
-    <!-- Deletion prefs -->
-    <string name="pref_deletion_enabled_title">Delete Shared Screenshots</string>
-    <string name="pref_deletion_enabled_summary">Removes screenshots from your device after sharing</string>
-    <string name="pref_deletion_requires_root">Root access is required for screenshot deletion</string>
-    <string name="pref_deletion_mode_title">Deletion Mode</string>
-    <string name="pref_deletion_mode_summary_ask">Adds a \"Delete after sharing\" checkbox to the share sheet. Remembers your last choice</string>
-    <string name="pref_deletion_mode_summary_always">Automatically deletes the screenshot in the background without showing a checkbox</string>
-    <string name="pref_deletion_action_title">Deletion Action</string>
-    <string name="pref_deletion_action_summary_delete">Permanently removes the file. Cannot be recovered</string>
-    <string name="pref_deletion_action_summary_trash">Moves the file to trash. Android keeps it for 30 days before removing it</string>
-    <string name="pref_deletion_delay_title">Deletion Delay</string>
-    <string name="pref_deletion_delay_summary">Waits %d seconds before deleting, ensuring the target app has time to process the image</string>
-    <string name="pref_show_toast_title">Show Toast</string>
-    <string name="pref_show_toast_summary">Shows a brief notification after each deletion</string>
-    <string name="pref_screenshot_pattern_title">Filename Pattern</string>
-    <string name="pref_screenshot_pattern_summary">Advanced: Custom regex pattern to identify screenshot files</string>
+    <string name="section_general">General</string>
+    <string name="section_about">About</string>
+    <string name="pref_hide_launcher_icon_title">Hide launcher icon</string>
+    <string name="pref_hide_launcher_icon_summary">Open CleanShare from your Xposed manager instead</string>
 
-    <!-- About prefs -->
-    <string name="pref_version_title">App version</string>
+    <string name="star_on_github">Star on GitHub</string>
+    <string name="buy_me_a_coffee">Buy me a coffee</string>
+    <string name="whats_new">What\'s new</string>
+    <string name="whats_new_summary">Changes in version %1$s</string>
+    <string name="whats_new_missing">No notes for this version yet</string>
+    <string name="changelog">Changelog</string>
+    <string name="changelog_summary">Notes for every release</string>
+    <string name="changelog_installed">Installed</string>
+    <string name="changelog_jump_top">Jump to newest</string>
+    <string name="changelog_jump_bottom">Jump to oldest</string>
     <string name="pref_github_title">Source code</string>
-    <string name="pref_github_summary">Browse the project on GitHub</string>
-    <string name="pref_licenses_title">Third-party licenses</string>
-    <string name="pref_licenses_summary">Libraries used in this app and their licenses</string>
-    <string name="pref_issues_title">Report an issue</string>
-    <string name="pref_issues_summary">Report a bug or suggest a feature on GitHub</string>
+    <string name="pref_issues_title">Suggest a feature or report a bug</string>
+    <string name="pref_issues_summary">Opens the issue form on GitHub</string>
+    <string name="pref_licenses_title">Open source licenses</string>
+    <string name="pref_licenses_summary">Libraries this app uses</string>
+    <string name="this_device">This device</string>
+    <string name="device_android">Android</string>
+    <string name="device_android_value">Android %1$s, API %2$d</string>
+    <string name="device_framework">Xposed framework</string>
+    <string name="device_framework_value">%1$s, API %2$d</string>
+    <string name="device_framework_none">Not connected</string>
 
     <!-- Easter egg -->
     <string name="pref_version_easter_egg">v%1$s (%2$d) – %3$s build</string>
 
     <!-- Regex dialog -->
-    <string name="regex_dialog_hint">Must be a valid regular expression. Only one pattern at a time is supported</string>
+    <string name="regex_dialog_hint">Use one valid regular expression.</string>
     <string name="regex_dialog_example">Example: Screenshot_20260218_172900.png</string>
     <string name="regex_dialog_learn_more">Learn more</string>
-    <string name="regex_dialog_invalid_pattern">Invalid pattern</string>
+    <string name="regex_dialog_invalid_pattern">Not a valid pattern</string>
     <string name="regex_dialog_default">Default</string>
-    <string name="regex_label">Regex</string>
+    <string name="regex_label">Pattern</string>
 
     <!-- Actions -->
     <string name="back">Back</string>

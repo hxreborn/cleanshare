@@ -87,6 +87,14 @@ android {
     }
 }
 
+androidComponents {
+    onVariants { variant ->
+        variant.sources.assets?.addStaticSourceDirectory(
+            rootProject.file("fastlane/metadata/android/en-US/changelogs").path,
+        )
+    }
+}
+
 kotlin {
     jvmToolchain(21)
 }

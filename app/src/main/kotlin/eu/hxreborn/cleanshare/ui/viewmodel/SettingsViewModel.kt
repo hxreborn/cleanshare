@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import eu.hxreborn.cleanshare.prefs.AppFilterMode
+import eu.hxreborn.cleanshare.prefs.AppPrefs
 import eu.hxreborn.cleanshare.prefs.DeletionAction
 import eu.hxreborn.cleanshare.prefs.DeletionMode
 import eu.hxreborn.cleanshare.prefs.Prefs
@@ -19,48 +20,53 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 
 class SettingsViewModel(
     private val prefs: PrefsRepository,
     private val applicationContext: Context,
 ) : ViewModel() {
-    private val rootAvailable = MutableStateFlow(false)
-    private val launcherIconHidden = MutableStateFlow(false)
-
-    init {
-        refreshRootAccess()
-        viewModelScope.launch(Dispatchers.IO) {
-            launcherIconHidden.value = !isLauncherIconVisible(applicationContext)
-        }
-    }
+    private val rootAvailable = MutableStateFlow<Boolean?>(null)
+    private val launcherIconHidden = MutableStateFlow(!isLauncherIconVisible(applicationContext))
+    private val rootCheckRunning = AtomicBoolean(false)
 
     fun refreshRootAccess() {
+        if (!rootCheckRunning.compareAndSet(false, true)) return
         viewModelScope.launch(Dispatchers.IO) {
-            rootAvailable.value = RootUtils.isRootAvailable()
+            try {
+                rootAvailable.value = RootUtils.isRootAvailable()
+            } finally {
+                rootCheckRunning.set(false)
+            }
         }
     }
 
     val uiState: StateFlow<SettingsUiState> =
-        combine(prefs.state, rootAvailable, launcherIconHidden) { app, root, iconHidden ->
-            SettingsUiState.Ready(
-                hideDirectShare = app.hideDirectShare,
-                hideQuickShare = app.hideQuickShare,
-                isLauncherIconHidden = iconHidden,
-                deletionEnabled = app.deletionEnabled,
-                deletionMode = app.deletionMode,
-                deletionAction = app.deletionAction,
-                deletionDelayMs = app.deletionDelayMs,
-                showDeletionToast = app.showDeletionToast,
-                screenshotPattern = app.screenshotPattern,
-                isRootAvailable = root,
-                appFilterMode = app.appFilterMode,
-                filteredApps = app.filteredApps,
+        combine(prefs.state, rootAvailable, launcherIconHidden, ::toUiState)
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = toUiState(prefs.readAll(), rootAvailable.value, launcherIconHidden.value),
             )
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = SettingsUiState.Loading,
-        )
+
+    private fun toUiState(
+        app: AppPrefs,
+        root: Boolean?,
+        iconHidden: Boolean,
+    ) = SettingsUiState(
+        hideDirectShare = app.hideDirectShare,
+        hideQuickShare = app.hideQuickShare,
+        isLauncherIconHidden = iconHidden,
+        deletionEnabled = app.deletionEnabled,
+        deletionMode = app.deletionMode,
+        deletionAction = app.deletionAction,
+        deletionDelayMs = app.deletionDelayMs,
+        showDeletionToast = app.showDeletionToast,
+        screenshotPattern = app.screenshotPattern,
+        isRootAvailable = root,
+        appFilterMode = app.appFilterMode,
+        filteredApps = app.filteredApps,
+    )
 
     fun setHideDirectShare(enabled: Boolean) = prefs.save(Prefs.HIDE_DIRECT_SHARE, enabled)
 

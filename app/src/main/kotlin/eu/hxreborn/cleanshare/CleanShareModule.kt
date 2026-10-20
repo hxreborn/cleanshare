@@ -190,7 +190,7 @@ class CleanShareModule : XposedModule() {
             method.isAccessible = true
             hook(method).intercept { chain ->
                 val activity = chain.thisObject as? Activity
-                if (activity != null) refreshCrossUserPrefs(activity)
+                if (activity != null) refreshCrossUserPrefs(activity, remotePrefs)
                 chain.proceed()
                 if (activity != null) CheckboxHook.onChooserCreated(activity)
                 null

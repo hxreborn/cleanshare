@@ -7,11 +7,13 @@ import eu.hxreborn.cleanshare.util.PREF_KEY_DELETION_ACTION
 import eu.hxreborn.cleanshare.util.PREF_KEY_DELETION_DELAY_MS
 import eu.hxreborn.cleanshare.util.PREF_KEY_DELETION_ENABLED
 import eu.hxreborn.cleanshare.util.PREF_KEY_DELETION_MODE
+import eu.hxreborn.cleanshare.util.PREF_KEY_DYNAMIC_COLOR
 import eu.hxreborn.cleanshare.util.PREF_KEY_FILTERED_APPS
 import eu.hxreborn.cleanshare.util.PREF_KEY_HIDE_DIRECT_SHARE
 import eu.hxreborn.cleanshare.util.PREF_KEY_HIDE_QUICK_SHARE
 import eu.hxreborn.cleanshare.util.PREF_KEY_SCREENSHOT_PATTERN
 import eu.hxreborn.cleanshare.util.PREF_KEY_SHOW_DELETION_TOAST
+import eu.hxreborn.cleanshare.util.PREF_KEY_THEME_MODE
 
 object Prefs {
     val HIDE_DIRECT_SHARE = BoolPref(PREF_KEY_HIDE_DIRECT_SHARE, true)
@@ -52,6 +54,10 @@ object Prefs {
 
     val FILTERED_APPS = StringSetPref(PREF_KEY_FILTERED_APPS, emptySet())
 
+    val THEME_MODE = EnumPref(PREF_KEY_THEME_MODE, ThemeMode.SYSTEM, ThemeMode::fromKey, { it.key })
+
+    val DYNAMIC_COLOR = BoolPref(PREF_KEY_DYNAMIC_COLOR, true)
+
     val all: List<PrefSpec<*>> =
         listOf(
             HIDE_DIRECT_SHARE,
@@ -64,5 +70,7 @@ object Prefs {
             SHOW_DELETION_TOAST,
             APP_FILTER_MODE,
             FILTERED_APPS,
+            THEME_MODE,
+            DYNAMIC_COLOR,
         )
 }

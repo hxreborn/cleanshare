@@ -5,11 +5,11 @@ import eu.hxreborn.cleanshare.R
 
 enum class DeletionMode(
     val key: String,
-    val displayName: String,
+    @StringRes val labelRes: Int,
     @StringRes val summaryRes: Int,
 ) {
-    ASK_EACH_TIME("ask", "Show Checkbox", R.string.pref_deletion_mode_summary_ask),
-    ALWAYS("always", "Always Delete", R.string.pref_deletion_mode_summary_always),
+    ASK_EACH_TIME("ask", R.string.deletion_mode_ask, R.string.pref_deletion_mode_summary_ask),
+    ALWAYS("always", R.string.deletion_mode_always, R.string.pref_deletion_mode_summary_always),
     ;
 
     companion object {

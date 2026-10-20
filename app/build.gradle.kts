@@ -16,8 +16,8 @@ android {
         applicationId = "eu.hxreborn.cleanshare"
         minSdk = 30
         targetSdk = 36
-        versionCode = 330
-        versionName = "3.3.0"
+        versionCode = 340
+        versionName = "3.4.0"
     }
 
     signingConfigs {
@@ -84,6 +84,14 @@ android {
         abortOnError = true
         disable.addAll(listOf("PrivateApi", "DiscouragedPrivateApi"))
         ignoreTestSources = true
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.sources.assets?.addStaticSourceDirectory(
+            rootProject.file("fastlane/metadata/android/en-US/changelogs").path,
+        )
     }
 }
 

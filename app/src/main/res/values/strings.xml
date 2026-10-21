@@ -87,11 +87,6 @@
     <string name="whats_new_title">What\'s new in %1$s</string>
     <string name="changelog_see_full">See full changelog</string>
     <string name="close">Close</string>
-    <string name="notes_new">New</string>
-    <string name="notes_fixed">Fixed</string>
-    <string name="notes_updated">Updated</string>
-    <string name="notes_removed">Removed</string>
-    <string name="notes_changed">Changed</string>
     <string name="changelog">Changelog</string>
     <string name="changelog_summary">Notes for every release</string>
     <string name="changelog_installed">Installed</string>

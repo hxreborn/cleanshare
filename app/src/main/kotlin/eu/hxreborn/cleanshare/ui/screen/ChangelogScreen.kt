@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
@@ -30,16 +32,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.RemoveCircleOutline
-import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.material.icons.outlined.Update
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.ButtonDefaults
@@ -65,28 +63,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.hxreborn.cleanshare.BuildConfig
 import eu.hxreborn.cleanshare.R
 import eu.hxreborn.cleanshare.ui.component.BackButton
 import eu.hxreborn.cleanshare.ui.component.ScreenGutter
-import eu.hxreborn.cleanshare.ui.util.Note
-import eu.hxreborn.cleanshare.ui.util.NoteKind
 import eu.hxreborn.cleanshare.ui.util.Release
 import eu.hxreborn.cleanshare.ui.util.centeredContentWidth
 import eu.hxreborn.cleanshare.ui.util.drawVerticalScrollbar
 import eu.hxreborn.cleanshare.ui.util.rememberReleases
 import kotlinx.coroutines.launch
 
-private val BadgeRadius = 8.dp
-private val BadgeHeight = 22.dp
-private val BadgeIconSize = 14.dp
 private val NoteMinHeight = 40.dp
+private val NoteDotSize = 6.dp
+private val NoteDotGap = 12.dp
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -192,70 +187,27 @@ private fun ReleaseCard(release: Release) {
 }
 
 @Composable
-fun ReleaseNotes(notes: List<Note>) {
+fun ReleaseNotes(notes: List<String>) {
     Column {
-        notes.sortedBy { it.kind.ordinal }.forEach { NoteRow(it) }
+        notes.forEach { NoteRow(it) }
     }
 }
 
 @Composable
-private fun NoteRow(note: Note) {
+private fun NoteRow(note: String) {
+    val style = MaterialTheme.typography.bodyMedium
+    val firstLine = with(LocalDensity.current) { style.lineHeight.toDp() }
     Row(
         Modifier
             .fillMaxWidth()
             .heightIn(min = NoteMinHeight)
             .padding(horizontal = 4.dp, vertical = 9.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(NoteDotGap),
     ) {
-        KindBadge(note.kind)
-        Text(note.text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-    }
-}
-
-@Composable
-private fun KindBadge(kind: NoteKind) {
-    val scheme = MaterialTheme.colorScheme
-    val (label, icon, colors) =
-        when (kind) {
-            NoteKind.NEW -> {
-                Triple(R.string.notes_new, Icons.Outlined.AutoAwesome, scheme.primaryContainer to scheme.onPrimaryContainer)
-            }
-
-            NoteKind.FIXED -> {
-                Triple(R.string.notes_fixed, Icons.Outlined.Build, scheme.tertiaryContainer to scheme.onTertiaryContainer)
-            }
-
-            NoteKind.UPDATED -> {
-                Triple(R.string.notes_updated, Icons.Outlined.Update, scheme.surfaceContainerHighest to scheme.onSurfaceVariant)
-            }
-
-            NoteKind.REMOVED -> {
-                Triple(
-                    R.string.notes_removed,
-                    Icons.Outlined.RemoveCircleOutline,
-                    scheme.surfaceContainerHighest to scheme.onSurfaceVariant,
-                )
-            }
-
-            NoteKind.CHANGED -> {
-                Triple(R.string.notes_changed, Icons.Outlined.Tune, scheme.surfaceContainerHighest to scheme.onSurfaceVariant)
-            }
+        Box(Modifier.height(firstLine), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(NoteDotSize).background(MaterialTheme.colorScheme.onSurfaceVariant, CircleShape))
         }
-    Surface(shape = RoundedCornerShape(BadgeRadius), color = colors.first, contentColor = colors.second) {
-        Row(
-            Modifier.heightIn(min = BadgeHeight).padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(BadgeIconSize))
-            Text(
-                stringResource(label),
-                style = MaterialTheme.typography.labelSmallEmphasized,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        Text(note, style = style, modifier = Modifier.weight(1f))
     }
 }
 

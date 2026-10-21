@@ -10,37 +10,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 private val NOTES_FILE = Regex("""(\d+)\.txt""")
+private val BULLET = Regex("""^[-*•]\s+""")
 
 @Immutable
 data class Release(
     val versionCode: Int,
     val versionName: String,
-    val notes: List<Note>,
+    val notes: List<String>,
 )
-
-@Immutable
-data class Note(
-    val kind: NoteKind,
-    val text: String,
-)
-
-enum class NoteKind(
-    private val verbs: Set<String>,
-) {
-    NEW(setOf("add", "added")),
-    FIXED(setOf("fix", "fixed")),
-    UPDATED(setOf("update", "updated", "upgrade", "upgraded")),
-    REMOVED(setOf("remove", "removed")),
-    CHANGED(emptySet()),
-    ;
-
-    companion object {
-        fun of(text: String): NoteKind {
-            val verb = text.substringBefore(' ').lowercase()
-            return entries.firstOrNull { verb in it.verbs } ?: CHANGED
-        }
-    }
-}
 
 fun loadReleases(assets: AssetManager): List<Release> =
     assets
@@ -61,12 +38,11 @@ fun loadReleases(assets: AssetManager): List<Release> =
             )
         }
 
-fun parseNotes(text: String): List<Note> =
+fun parseNotes(text: String): List<String> =
     text
         .lines()
-        .map { it.trim().removePrefix("- ").trim() }
+        .map { it.trim().replaceFirst(BULLET, "").trim() }
         .filter { it.isNotEmpty() }
-        .map { Note(NoteKind.of(it), it) }
 
 @Composable
 fun rememberReleases(): State<List<Release>?> {

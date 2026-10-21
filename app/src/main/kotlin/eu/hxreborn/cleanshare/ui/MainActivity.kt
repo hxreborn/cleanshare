@@ -7,14 +7,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.initializer
@@ -31,7 +31,10 @@ import eu.hxreborn.cleanshare.ui.screen.HomeActions
 import eu.hxreborn.cleanshare.ui.screen.HomeScreen
 import eu.hxreborn.cleanshare.ui.screen.LicensesScreen
 import eu.hxreborn.cleanshare.ui.theme.CleanShareTheme
+import eu.hxreborn.cleanshare.ui.theme.Tokens
 import eu.hxreborn.cleanshare.ui.viewmodel.SettingsViewModel
+import soup.compose.material.motion.animation.materialSharedAxisXIn
+import soup.compose.material.motion.animation.materialSharedAxisXOut
 
 class MainActivity : ComponentActivity() {
     private val viewModel: SettingsViewModel by viewModels {
@@ -53,23 +56,19 @@ class MainActivity : ComponentActivity() {
             CleanShareTheme(themeMode = state.themeMode, dynamicColor = state.dynamicColor) {
                 val backStack = rememberNavBackStack(Screen.Home)
                 val pop: () -> Unit = { backStack.removeLastOrNull() }
+                val slideDistance = with(LocalDensity.current) { Tokens.NavSlideDistance.roundToPx() }
+
+                fun sharedAxisX(forward: Boolean): ContentTransform =
+                    materialSharedAxisXIn(forward = forward, slideDistance = slideDistance) togetherWith
+                        materialSharedAxisXOut(forward = forward, slideDistance = slideDistance)
 
                 Surface(color = MaterialTheme.colorScheme.surface, modifier = Modifier.fillMaxSize()) {
                     NavDisplay(
                         backStack = backStack,
                         onBack = pop,
-                        transitionSpec = {
-                            slideInHorizontally(initialOffsetX = { it }) togetherWith
-                                slideOutHorizontally(targetOffsetX = { -it })
-                        },
-                        popTransitionSpec = {
-                            slideInHorizontally(initialOffsetX = { -it }) togetherWith
-                                slideOutHorizontally(targetOffsetX = { it })
-                        },
-                        predictivePopTransitionSpec = {
-                            slideInHorizontally(initialOffsetX = { -it }) togetherWith
-                                slideOutHorizontally(targetOffsetX = { it })
-                        },
+                        transitionSpec = { sharedAxisX(forward = true) },
+                        popTransitionSpec = { sharedAxisX(forward = false) },
+                        predictivePopTransitionSpec = { sharedAxisX(forward = false) },
                         entryProvider =
                             entryProvider {
                                 entry<Screen.Home> {

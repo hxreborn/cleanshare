@@ -17,4 +17,6 @@ object Tokens {
     val SectionItemSpacing = 2.dp
     val SectionHorizontalMargin = ScreenHorizontalPadding
     val RowCornerRadius = 24.dp
+
+    val NavSlideDistance = 96.dp
 }

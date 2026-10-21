@@ -138,4 +138,5 @@ dependencies {
     implementation(libs.libsu.io)
     implementation(libs.navigation3.runtime)
     implementation(libs.navigation3.ui)
+    implementation(libs.material.motion.compose.core)
 }

@@ -36,12 +36,16 @@ it also blocks backend shortcut queries to prevent share target profiling.
 - Filter share targets: hide selected apps, or show only the ones you pick
 - Delete shared screenshots after sharing with configurable delay (root required)
 - Move to trash or permanently delete
+- Status card showing whether the module is active and which framework runs it
+- Add the share sheet to the module's scope from the app when it's missing
+- Light, dark or system theme, with dynamic color on Android 12+
+- About screen with What's new, the full changelog and a bug report link
 - Built-in settings app with Material 3 UI
 
 ## Requirements
 
 - Android 11 (API 30) or higher
-- An LSPosed Manager version with API 101 support (required for now)
+- An Xposed manager with libxposed API 101 support, such as Vector 2.1 or newer
 - Pixel or AOSP-based ROM (Other OEMs are untested)
 
 ## Installation
@@ -53,7 +57,7 @@ it also blocks backend shortcut queries to prevent share target profiling.
    <a href="../../releases"><img src=".github/assets/badge_github.png" height="60" alt="Get it on GitHub" /></a>
    <a href="http://apps.obtainium.imranr.dev/redirect.html?r=obtainium://app/%7B%22id%22%3A%22eu.hxreborn.cleanshare%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Fhxreborn%2Fcleanshare%22%2C%22author%22%3A%22rafareborn%22%2C%22name%22%3A%22CleanShare%22%2C%22additionalSettings%22%3A%22%7B%5C%22includePrereleases%5C%22%3Afalse%7D%22%7D"><img src=".github/assets/badge_obtainium.png" height="60" alt="Get it on Obtainium" /></a>
 
-2. Install and enable the module in LSPosed.
+2. Install and enable the module in your Xposed manager.
 3. Configure the scope:
 
    **Android 13+**

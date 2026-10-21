@@ -60,6 +60,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -94,6 +95,7 @@ import eu.hxreborn.cleanshare.ui.util.Release
 import eu.hxreborn.cleanshare.ui.util.centeredContentWidth
 import eu.hxreborn.cleanshare.ui.util.drawVerticalScrollbar
 import eu.hxreborn.cleanshare.ui.util.rememberReleases
+import kotlinx.coroutines.launch
 
 private const val REPO = "hxreborn/cleanshare"
 private const val REPO_URL = "https://github.com/$REPO"
@@ -205,7 +207,7 @@ fun AboutScreen(
     }
 
     if (showWhatsNew) {
-        WhatsNewSheet(
+        WhatsNewBottomSheet(
             release = releases?.firstOrNull { it.versionCode == BuildConfig.VERSION_CODE },
             onFullChangelog = {
                 showWhatsNew = false
@@ -359,39 +361,18 @@ private fun DeviceGroup(moduleStatus: ModuleStatus) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun WhatsNewSheet(
+private fun WhatsNewBottomSheet(
     release: Release?,
     onFullChangelog: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-        Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(R.string.whats_new), style = MaterialTheme.typography.titleLarge)
-            Text(
-                "v${BuildConfig.VERSION_NAME}",
-                style = MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Monospace),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (release == null) {
-                Text(stringResource(R.string.whats_new_missing), style = MaterialTheme.typography.bodyMedium)
-            } else {
-                ReleaseNotes(release.notes)
-            }
-            TextButton(onClick = onFullChangelog, modifier = Modifier.align(Alignment.End)) {
-                Text(stringResource(R.string.changelog))
-            }
-        }
-    }
-}
-
-@Composable
-fun ReleaseNotes(notes: List<String>) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        notes.forEach { note ->
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("•", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
-                Text(note, style = MaterialTheme.typography.bodyMedium)
-            }
-        }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        WhatsNewSheet(
+            release = release,
+            onFullChangelog = onFullChangelog,
+            onClose = { scope.launch { sheetState.hide() }.invokeOnCompletion { onDismiss() } },
+        )
     }
 }

@@ -15,8 +15,32 @@ private val NOTES_FILE = Regex("""(\d+)\.txt""")
 data class Release(
     val versionCode: Int,
     val versionName: String,
-    val notes: List<String>,
+    val notes: List<Note>,
 )
+
+@Immutable
+data class Note(
+    val kind: NoteKind,
+    val text: String,
+)
+
+enum class NoteKind(
+    private val verbs: Set<String>,
+) {
+    NEW(setOf("add", "added")),
+    FIXED(setOf("fix", "fixed")),
+    UPDATED(setOf("update", "updated", "upgrade", "upgraded")),
+    REMOVED(setOf("remove", "removed")),
+    CHANGED(emptySet()),
+    ;
+
+    companion object {
+        fun of(text: String): NoteKind {
+            val verb = text.substringBefore(' ').lowercase()
+            return entries.firstOrNull { verb in it.verbs } ?: CHANGED
+        }
+    }
+}
 
 fun loadReleases(assets: AssetManager): List<Release> =
     assets
@@ -37,11 +61,12 @@ fun loadReleases(assets: AssetManager): List<Release> =
             )
         }
 
-fun parseNotes(text: String): List<String> =
+fun parseNotes(text: String): List<Note> =
     text
         .lines()
         .map { it.trim().removePrefix("- ").trim() }
         .filter { it.isNotEmpty() }
+        .map { Note(NoteKind.of(it), it) }
 
 @Composable
 fun rememberReleases(): State<List<Release>?> {

@@ -52,3 +52,4 @@ release.keystore
 !gradle/wrapper/gradle-wrapper.properties
 !gradle/libs.versions.toml
 !fastlane/metadata/android/en-US/changelogs/*.txt
+!app/src/main/assets/release-dates.txt

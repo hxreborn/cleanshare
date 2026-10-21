@@ -63,6 +63,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -78,6 +79,9 @@ import eu.hxreborn.cleanshare.ui.util.centeredContentWidth
 import eu.hxreborn.cleanshare.ui.util.drawVerticalScrollbar
 import eu.hxreborn.cleanshare.ui.util.rememberReleases
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 private val NoteMinHeight = 40.dp
 private val NoteDotSize = 6.dp
@@ -165,12 +169,23 @@ private fun JumpButton(
 private fun ReleaseCard(release: Release) {
     Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainer, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                itemVerticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(
                     "v${release.versionName}",
                     style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace),
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.semantics { heading() },
                 )
+                release.releasedOn?.let {
+                    Text(
+                        rememberDateText(it),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 if (release.versionCode == BuildConfig.VERSION_CODE) {
                     Surface(shape = MaterialTheme.shapes.small, color = MaterialTheme.colorScheme.secondaryContainer) {
                         Text(
@@ -184,6 +199,12 @@ private fun ReleaseCard(release: Release) {
             ReleaseNotes(release.notes)
         }
     }
+}
+
+@Composable
+private fun rememberDateText(date: LocalDate): String {
+    val locale = LocalConfiguration.current.locales[0]
+    return remember(date, locale) { DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale).format(date) }
 }
 
 @Composable
@@ -221,11 +242,20 @@ fun WhatsNewSheet(
         Modifier.padding(start = 16.dp, end = 16.dp, bottom = 20.dp).verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(
-            stringResource(R.string.whats_new_title, BuildConfig.VERSION_NAME),
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(top = 4.dp).semantics { heading() },
-        )
+        Column(Modifier.padding(top = 4.dp)) {
+            Text(
+                stringResource(R.string.whats_new_title, BuildConfig.VERSION_NAME),
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.semantics { heading() },
+            )
+            release?.releasedOn?.let {
+                Text(
+                    stringResource(R.string.whats_new_released, rememberDateText(it)),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
         if (release == null) {
             Text(
                 stringResource(R.string.whats_new_missing),

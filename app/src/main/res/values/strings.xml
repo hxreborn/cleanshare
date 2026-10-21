@@ -85,6 +85,7 @@
     <string name="whats_new_summary">Changes in version %1$s</string>
     <string name="whats_new_missing">No notes for this version yet</string>
     <string name="whats_new_title">What\'s new in %1$s</string>
+    <string name="whats_new_released">Released %1$s</string>
     <string name="changelog_see_full">See full changelog</string>
     <string name="close">Close</string>
     <string name="changelog">Changelog</string>

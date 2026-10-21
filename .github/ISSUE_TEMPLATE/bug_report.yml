@@ -36,10 +36,10 @@ body:
       placeholder: "AP4A.250205.002 / LineageOS 22.1"
 
   - type: input
-    id: lsposed
+    id: manager
     attributes:
-      label: LSPosed version
-      placeholder: "1.11.0 (7209)"
+      label: Xposed manager and version
+      placeholder: "Vector 2.2"
 
   - type: input
     id: root
@@ -57,5 +57,5 @@ body:
     id: logs
     attributes:
       label: Logs
-      description: Drag LSPosed log zip here or paste a link
+      description: Drag your Xposed manager's log zip here or paste a link
       placeholder: "https://0x0.st/abc.zip or drag file"

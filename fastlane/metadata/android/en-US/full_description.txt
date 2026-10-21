@@ -12,5 +12,5 @@
 <p><b>Requirements:</b></p>
 <ul>
 <li>Android 11 or higher and AOSP rom</li>
-<li>LSPosed framework</li>
+<li>An Xposed manager with libxposed API 101 support, such as Vector 2.1 or newer</li>
 </ul>

@@ -42,6 +42,15 @@ private fun isShareIntent(arg: Any?): Boolean =
         else -> false
     }
 
+private inline fun <T> hookCatching(block: () -> T): Result<T> =
+    try {
+        Result.success(block())
+    } catch (e: Exception) {
+        Result.failure(e)
+    } catch (e: LinkageError) {
+        Result.failure(e)
+    }
+
 private val CHOOSER_CLASS_NAMES =
     listOf(
         "com.android.intentresolver.ChooserActivity",
@@ -121,7 +130,7 @@ class CleanShareModule : XposedModule() {
     }
 
     private fun hookLowRam() {
-        runCatching {
+        hookCatching {
             val method = ActivityManager::class.java.getDeclaredMethod("isLowRamDeviceStatic")
             method.isAccessible = true
             hook(method).intercept { chain ->
@@ -140,7 +149,7 @@ class CleanShareModule : XposedModule() {
                 log(Log.ERROR, TAG, "hook service-target-count failed reason=class-missing")
                 return
             }
-        runCatching {
+        hookCatching {
             val method = clazz.getDeclaredMethod("getServiceTargetCount")
             method.isAccessible = true
             hook(method).intercept { chain ->
@@ -164,7 +173,7 @@ class CleanShareModule : XposedModule() {
                 log(Log.INFO, TAG, "skip service-target-row-count reason=method-missing")
                 return
             }
-        runCatching {
+        hookCatching {
             method.isAccessible = true
             hook(method).intercept { chain ->
                 if (hideDirectShare) return@intercept 0
@@ -185,7 +194,7 @@ class CleanShareModule : XposedModule() {
                 return
             }
 
-        runCatching {
+        hookCatching {
             val method = chooserClass.getDeclaredMethod("onCreate", Bundle::class.java)
             method.isAccessible = true
             hook(method).intercept { chain ->
@@ -204,7 +213,7 @@ class CleanShareModule : XposedModule() {
                 return
             }
 
-        runCatching {
+        hookCatching {
             startSelected.isAccessible = true
             hook(startSelected).intercept { chain ->
                 chain.proceed()
@@ -216,7 +225,7 @@ class CleanShareModule : XposedModule() {
     }
 
     private fun hookShareTargets() {
-        runCatching {
+        hookCatching {
             val method =
                 ShortcutManager::class.java
                     .getDeclaredMethod("getShareTargets", IntentFilter::class.java)
@@ -248,7 +257,7 @@ class CleanShareModule : XposedModule() {
 
         val hooked =
             methods.count { method ->
-                runCatching {
+                hookCatching {
                     method.isAccessible = true
                     hook(method).intercept { chain ->
                         val result = chain.proceed()

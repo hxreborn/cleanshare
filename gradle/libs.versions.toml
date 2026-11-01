@@ -11,7 +11,7 @@ compose-preference = "1.1.1"
 aboutlibraries = "15.2.0"
 splashscreen = "1.0.1"
 libsu = "6.0.0"
-navigation3 = "1.3.0-alpha01"
+navigation3 = "1.3.0-alpha03"
 material-motion = "2.0.1"
 junit = "4.13.2"
 
